@@ -1,0 +1,27 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ruff
+        name: Ruff
+        entry: uv run --locked ruff check
+        language: system
+        types: [python]
+      - id: mypy
+        name: mypy
+        entry: uv run --locked mypy
+        language: system
+        types: [python]
+      - id: eslint
+        name: ESLint
+        entry: pnpm exec eslint
+        language: system
+        types: [javascript]
+      - id: prettier
+        name: Prettier
+        entry: pnpm exec prettier --check
+        language: system
+        types: [text]
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks

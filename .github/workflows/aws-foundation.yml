@@ -1,0 +1,25 @@
+name: Dev cell foundation
+on: workflow_dispatch
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+      VERIMED_CELL_ACCOUNT: ${{ vars.VERIMED_CELL_ACCOUNT }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: "24"
+      - uses: pnpm/action-setup@v6.1.1
+      - run: pnpm install --frozen-lockfile
+      - uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: ${{ vars.VERIMED_AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          allowed-account-ids: ${{ env.VERIMED_CELL_ACCOUNT }}
+      - run: pnpm --filter @verimed/cdk exec cdk deploy CellFoundation -c env=dev -c cell=a --require-approval never

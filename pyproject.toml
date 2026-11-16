@@ -1,0 +1,13 @@
+[project]
+name = "verimed"
+version = "0.0.0"
+requires-python = ">=3.12,<3.13"
+
+[dependency-groups]
+dev = ["ruff==0.17.5", "mypy==2.4.1", "pre-commit==4.7.0"]
+
+[tool.uv.workspace]
+members = ["services/*", "agents/*"]
+
+[tool.mypy]
+strict = true

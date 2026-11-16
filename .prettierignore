@@ -1,0 +1,7 @@
+docs/0*.md
+docs/06_PHASES.md
+AGENTS.md
+uv.lock
+pnpm-lock.yaml
+**/dist/
+**/cdk.out/

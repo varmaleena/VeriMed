@@ -1,0 +1,10 @@
+{
+  "name": "VeriMed Phase 0",
+  "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+    "ghcr.io/devcontainers/features/node:1": { "version": "24" },
+    "ghcr.io/devcontainers/features/python:1": { "version": "3.12" }
+  },
+  "postCreateCommand": "pipx install uv==0.13.8 && npm install --global pnpm@12.21.0"
+}
