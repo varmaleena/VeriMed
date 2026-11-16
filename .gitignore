@@ -1,5 +1,8 @@
 node_modules/
 .venv/
+.venv-s2/
+.venv-s2-proxy/
+cdk.context.json
 __pycache__/
 cdk.out/
 dist/

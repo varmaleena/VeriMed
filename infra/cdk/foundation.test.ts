@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import { App } from "aws-cdk-lib";
-import { Template } from "aws-cdk-lib/assertions";
+import { Match, Template } from "aws-cdk-lib/assertions";
 import { CellFoundation, HubFoundation } from "./foundation";
 
 for (const StackType of [HubFoundation, CellFoundation]) {
@@ -10,8 +10,21 @@ for (const StackType of [HubFoundation, CellFoundation]) {
     );
     template.resourceCountIs("AWS::EC2::NatGateway", 0);
     template.resourceCountIs("AWS::EC2::VPCEndpoint", 10);
+    template.resourceCountIs("AWS::EC2::Subnet", 1);
     template.hasResourceProperties("AWS::KMS::Key", {
       EnableKeyRotation: true,
+      KeyPolicy: {
+        Statement: Match.arrayWith([
+          Match.objectLike({
+            Principal: { Service: Match.anyValue() },
+            Condition: {
+              ArnEquals: {
+                "kms:EncryptionContext:aws:logs:arn": Match.anyValue(),
+              },
+            },
+          }),
+        ]),
+      },
     });
     template.resourceCountIs("AWS::EC2::FlowLog", 1);
     template.resourceCountIs("AWS::Budgets::Budget", 1);

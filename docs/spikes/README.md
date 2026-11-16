@@ -1,11 +1,11 @@
 # Spike evidence
 
-Store sanitized measurements here. Exclude access tokens, generated clinical content, and account identifiers. No live spike evidence has been collected.
+Store sanitized measurements here. Exclude access tokens, generated clinical content, and account identifiers.
 
-| Spike | Local deliverable                  | Execution status                                                                                                                                 |
-| ----- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| S1    | ADR 001                            | Runtime and Gateway spike pending                                                                                                                |
-| S2    | ADR 002                            | Proxy and Guardrails spike pending                                                                                                               |
-| S3    | `spikes/s3_healthscribe_submit.py` | Submission code only. Provision the encrypted sandbox, collect output field counts and evidence references, then delete the job and its objects. |
-| S4    | `spikes/s4_hapi_import.py`         | Local HAPI timing script. Synthea generation, HealthLake leg, and comparison pending.                                                            |
-| S5    | `spikes/s5_bedrock_inventory.py`   | AWS catalog listing script. Regional results and alias selection pending.                                                                        |
+| Spike | Evidence and status                                                                                                                                                                                      |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S1    | [ADR 001](../adr/001-agentcore-runtime.md). Runtime and Gateway spike pending.                                                                                                                           |
+| S2    | [ADR 002](../adr/002-litellm-strands.md). [Live results](s2-litellm.json). Structured output passed through Nova 2 Lite and the Bedrock Guardrail blocked its sentinel. The temporary stack was deleted. |
+| S3    | [Live metrics](s3-healthscribe.json). All 27 words had timestamps and confidence, zero had multiple alternatives, and five evidence links were returned. The temporary stack was deleted.                |
+| S4    | [ADR 004](../adr/004-fhir-backend.md). Local HAPI timing script exists. Synthea generation, HealthLake leg, and comparison remain open.                                                                  |
+| S5    | [Catalog](s5-us-east-1.json), [aliases](s5-alias-candidates.json), and [availability](s5-availability.json). Six candidates were selected. Four agreement statuses require follow-up before invocation.  |

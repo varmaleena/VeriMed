@@ -11,3 +11,6 @@ members = ["services/*", "agents/*"]
 
 [tool.mypy]
 strict = true
+
+[tool.ruff]
+extend-exclude = ["docs/0*.md", "AGENTS.md", ".venv-s2", ".venv-s2-proxy"]

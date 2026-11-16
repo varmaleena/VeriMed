@@ -1,0 +1,8 @@
+{
+  "MODEL_REASONING_ID": "us.anthropic.claude-sonnet-5-5",
+  "MODEL_FAST_ID": "us.anthropic.claude-haiku-5-5",
+  "MODEL_CHALLENGER_ID": "us.amazon.nova-2-lite-v1:0",
+  "MODEL_JUDGE_ID": "us.openai.gpt-6.1-sol",
+  "MODEL_EMBED_ID": "amazon.titan-embed-text-v2:0",
+  "MODEL_RERANK_ID": "cohere.rerank-v3-5:0"
+}

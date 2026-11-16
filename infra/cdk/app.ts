@@ -1,5 +1,7 @@
 import { App, Validations } from "aws-cdk-lib";
 import { AwsSolutionsChecks } from "cdk-nag";
+import { HealthScribeSpike } from "./healthscribe-spike";
+import { LiteLlmSpike } from "./litellm-spike";
 import { CellFoundation, HubFoundation } from "./foundation";
 
 const app = new App();
@@ -17,3 +19,13 @@ new CellFoundation(app, "CellFoundation", {
   env: { region, account: process.env.VERIMED_CELL_ACCOUNT },
 });
 Validations.of(app).addPlugins(new AwsSolutionsChecks(app));
+if (app.node.tryGetContext("healthscribeSpike") === "true") {
+  new HealthScribeSpike(app, "HealthScribeSpike", {
+    env: { region, account: process.env.VERIMED_CELL_ACCOUNT },
+  });
+}
+if (app.node.tryGetContext("liteLlmSpike") === "true") {
+  new LiteLlmSpike(app, "LiteLlmSpike", {
+    env: { region, account: process.env.VERIMED_CELL_ACCOUNT },
+  });
+}

@@ -1,0 +1,15 @@
+model_list:
+  - model_name: verimed-spike
+    litellm_params:
+      model: os.environ/VERIMED_SPIKE_PROVIDER_MODEL
+      aws_region_name: us-east-1
+general_settings:
+  master_key: os.environ/VERIMED_SPIKE_PROXY_KEY
+guardrails:
+  - guardrail_name: verimed-spike-input
+    litellm_params:
+      guardrail: bedrock
+      mode: pre_call
+      default_on: true
+      guardrailIdentifier: os.environ/GUARDRAIL_ID
+      guardrailVersion: os.environ/GUARDRAIL_VERSION

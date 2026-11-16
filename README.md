@@ -10,3 +10,11 @@ make synth
 ```
 
 The first Compose build compiles the pinned MinIO Community source. See [blockers](docs/BLOCKERS.md) for workflows that still need a VeriMed AWS account or live validation.
+
+For the Phase 0 AWS handoff, verify the deployed dev cell with the authorized profile.
+
+```sh
+aws cloudformation describe-stacks --stack-name CellFoundation --profile default --region us-east-1 --query 'Stacks[0].StackStatus' --output text
+```
+
+Expect `CREATE_COMPLETE`. Local `make test` should report two passing foundation tests. `make synth` should synthesize both foundation stacks with cdk-nag enabled. The [spike evidence](docs/spikes/README.md) tracks the live checks and outstanding acceptance work.

@@ -1,4 +1,5 @@
 import {
+  ArnFormat,
   CfnOutput,
   Duration,
   RemovalPolicy,
@@ -39,13 +40,42 @@ export class Foundation extends Stack {
     Tags.of(this).add("Env", props.stage);
     Tags.of(this).add("Tenant", props.tenant);
     const key = new Key(this, "Key", { enableKeyRotation: true });
+    const flowLogName = `/verimed/${props.stage}/${props.tenant}/vpc-flow`;
+    key.addToResourcePolicy(
+      new PolicyStatement({
+        principals: [
+          new ServicePrincipal(`logs.${this.region}.${this.urlSuffix}`),
+        ],
+        actions: [
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:ReEncryptFrom",
+          "kms:ReEncryptTo",
+          "kms:GenerateDataKey",
+          "kms:GenerateDataKeyWithoutPlaintext",
+          "kms:DescribeKey",
+        ],
+        resources: ["*"],
+        conditions: {
+          ArnEquals: {
+            "kms:EncryptionContext:aws:logs:arn": this.formatArn({
+              service: "logs",
+              resource: "log-group",
+              resourceName: flowLogName,
+              arnFormat: ArnFormat.COLON_RESOURCE_NAME,
+            }),
+          },
+        },
+      }),
+    );
     const logs = new LogGroup(this, "VpcFlowLogs", {
+      logGroupName: flowLogName,
       encryptionKey: key,
       retention: RetentionDays.ONE_MONTH,
       removalPolicy: RemovalPolicy.RETAIN,
     });
     const vpc = new Vpc(this, "Vpc", {
-      maxAzs: 2,
+      maxAzs: props.stage === "dev" ? 1 : 2,
       natGateways: 0,
       restrictDefaultSecurityGroup: true,
       subnetConfiguration: [

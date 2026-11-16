@@ -1,0 +1,38 @@
+{
+  "MODEL_REASONING_ID": {
+    "authorization": "AUTHORIZED",
+    "entitlement": "AVAILABLE",
+    "region": "AVAILABLE",
+    "agreement": "NOT_AVAILABLE"
+  },
+  "MODEL_FAST_ID": {
+    "authorization": "AUTHORIZED",
+    "entitlement": "AVAILABLE",
+    "region": "AVAILABLE",
+    "agreement": "NOT_AVAILABLE"
+  },
+  "MODEL_CHALLENGER_ID": {
+    "authorization": "AUTHORIZED",
+    "entitlement": "AVAILABLE",
+    "region": "AVAILABLE",
+    "agreement": "AVAILABLE"
+  },
+  "MODEL_JUDGE_ID": {
+    "authorization": "AUTHORIZED",
+    "entitlement": "AVAILABLE",
+    "region": "AVAILABLE",
+    "agreement": "NOT_AVAILABLE"
+  },
+  "MODEL_EMBED_ID": {
+    "authorization": "AUTHORIZED",
+    "entitlement": "AVAILABLE",
+    "region": "AVAILABLE",
+    "agreement": "AVAILABLE"
+  },
+  "MODEL_RERANK_ID": {
+    "authorization": "AUTHORIZED",
+    "entitlement": "AVAILABLE",
+    "region": "AVAILABLE",
+    "agreement": "NOT_AVAILABLE"
+  }
+}
