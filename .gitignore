@@ -4,6 +4,7 @@ node_modules/
 .venv-s2-proxy/
 .phase0-synthea/
 .phase0-agentcore/
+.phase0-hapi/
 cdk.context.json
 __pycache__/
 cdk.out/
