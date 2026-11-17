@@ -11,6 +11,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("bundles", type=Path)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--request-timeout", type=float, default=120)
     args = parser.parse_args()
     bundles = []
     support = []
@@ -23,32 +24,32 @@ def main() -> None:
             entry["id"] for entry in entries if entry.get("resourceType") == "Patient"
         ]
         if not ids:
-            if bundle.get("type") == "transaction" and entries:
-                support.append((raw, len(entries)))
+            if bundle.get("type") in {"transaction", "batch"} and entries:
+                support.append((raw, len(entries), f"{bundle['type']}-response"))
             continue
         if bundle.get("type") != "transaction" or len(ids) != 1 or ids[0] in patients:
             parser.error(
                 "expected one unique Patient per Synthea FHIR transaction bundle"
             )
         patients.add(ids[0])
-        bundles.append((raw, len(entries)))
+        bundles.append((raw, len(entries), "transaction-response"))
     if len(patients) != 50:
         parser.error(f"expected 50 distinct patients, found {len(patients)}")
 
     print("Estimated AWS spend for local HAPI leg: $0.")
     started = time.monotonic()
-    for raw, entry_count in [*support, *bundles]:
+    for raw, entry_count, response_type in [*support, *bundles]:
         request = Request(
             "http://127.0.0.1:8080/fhir",
             data=raw,
             headers={"Content-Type": "application/fhir+json"},
             method="POST",
         )
-        with urlopen(request, timeout=120) as response:
+        with urlopen(request, timeout=args.request_timeout) as response:
             result = json.load(response)
         responses = result.get("entry", [])
         if (
-            result.get("type") != "transaction-response"
+            result.get("type") != response_type
             or len(responses) != entry_count
             or not all(
                 entry.get("response", {}).get("status", "").startswith("2")

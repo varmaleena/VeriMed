@@ -29,15 +29,17 @@ def main() -> None:
     support = []
     for path in sorted(args.synthea_fhir.glob("*.json")):
         bundle = json.loads(path.read_bytes())
-        if bundle.get("type") != "transaction":
+        if bundle.get("type") not in {"transaction", "batch"}:
             continue
         entries = bundle["entry"]
         entries_with_patient = [
             entry for entry in entries if entry["resource"]["resourceType"] == "Patient"
         ]
         if not entries_with_patient:
-            support.append(entries)
+            support.append((path, entries))
             continue
+        if bundle.get("type") != "transaction":
+            parser.error("expected Synthea patient bundles of type transaction")
         if len(entries_with_patient) != 1:
             parser.error("expected one patient per Synthea transaction bundle")
         patient = entries_with_patient[0]["resource"]["id"]
@@ -49,7 +51,7 @@ def main() -> None:
 
     references: dict[str, str] = {}
     resources: dict[str, dict[str, Any]] = {}
-    for entries in [*support, *(entries for _, entries in bundles)]:
+    for _, entries in [*support, *bundles]:
         for entry in entries:
             resource = entry["resource"]
             full_url = entry.get("fullUrl")
@@ -70,14 +72,8 @@ def main() -> None:
     healthlake = args.output / "healthlake"
     hapi.mkdir(parents=True)
     healthlake.mkdir()
-    for path, _ in bundles:
+    for path, _ in [*support, *bundles]:
         (hapi / path.name).write_bytes(path.read_bytes())
-    for path in sorted(args.synthea_fhir.glob("*.json")):
-        bundle = json.loads(path.read_bytes())
-        if bundle.get("type") == "transaction" and not any(
-            entry["resource"]["resourceType"] == "Patient" for entry in bundle["entry"]
-        ):
-            (hapi / path.name).write_bytes(path.read_bytes())
     with (healthlake / "resources.ndjson").open(
         "w", encoding="utf-8", newline="\n"
     ) as stream:

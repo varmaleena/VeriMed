@@ -32,7 +32,8 @@ Expect `CREATE_COMPLETE`. Local `make test` should report two passing foundation
 The HAPI benchmark uses the same Synthea cohort as HealthLake. With Docker Compose running and a fresh HAPI database, run the following command against the local prepared fixture.
 
 ```powershell
-uv run --locked python spikes/s4_hapi_import.py .phase0-synthea/benchmark/hapi --output docs/spikes/s4-hapi.json
+uv run --locked python spikes/s4_prepare_synthea.py .phase0-synthea/generated/fhir .phase0-synthea/benchmark-with-support
+uv run --locked python spikes/s4_hapi_import.py .phase0-synthea/benchmark-with-support/hapi --request-timeout 600 --output docs/spikes/s4-hapi.json
 ```
 
-The script verifies that the dedicated HAPI database contains 50 patients and writes the elapsed import time.
+Skip the preparation command if that output directory already exists. The loader imports Synthea's hospital and practitioner bundles first, verifies that the dedicated HAPI database contains 50 patients, and writes the elapsed import time.
