@@ -13,6 +13,7 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     bundles = []
+    support = []
     patients: set[str] = set()
     for source in sorted(args.bundles.glob("*.json")):
         raw = source.read_bytes()
@@ -22,19 +23,21 @@ def main() -> None:
             entry["id"] for entry in entries if entry.get("resourceType") == "Patient"
         ]
         if not ids:
+            if bundle.get("type") == "transaction" and entries:
+                support.append((raw, len(entries)))
             continue
         if bundle.get("type") != "transaction" or len(ids) != 1 or ids[0] in patients:
             parser.error(
                 "expected one unique Patient per Synthea FHIR transaction bundle"
             )
         patients.add(ids[0])
-        bundles.append(raw)
+        bundles.append((raw, len(entries)))
     if len(patients) != 50:
         parser.error(f"expected 50 distinct patients, found {len(patients)}")
 
     print("Estimated AWS spend for local HAPI leg: $0.")
     started = time.monotonic()
-    for raw in bundles:
+    for raw, entry_count in [*support, *bundles]:
         request = Request(
             "http://127.0.0.1:8080/fhir",
             data=raw,
@@ -43,15 +46,29 @@ def main() -> None:
         )
         with urlopen(request, timeout=120) as response:
             result = json.load(response)
-        if result.get("type") != "transaction-response" or not all(
-            entry.get("response", {}).get("status", "").startswith("2")
-            for entry in result.get("entry", [{}])
+        responses = result.get("entry", [])
+        if (
+            result.get("type") != "transaction-response"
+            or len(responses) != entry_count
+            or not all(
+                entry.get("response", {}).get("status", "").startswith("2")
+                for entry in responses
+            )
         ):
             raise RuntimeError("HAPI did not confirm the complete FHIR transaction")
+    elapsed = time.monotonic() - started
+    with urlopen(
+        "http://127.0.0.1:8080/fhir/Patient?_summary=count", timeout=30
+    ) as response:
+        stored_patients = json.load(response).get("total")
+    if stored_patients != len(patients):
+        raise RuntimeError(
+            "The dedicated HAPI store did not contain exactly 50 patients"
+        )
     report = {
         "backend": "hapi",
         "patients": len(patients),
-        "seconds": time.monotonic() - started,
+        "seconds": elapsed,
     }
     args.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
 

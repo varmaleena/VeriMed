@@ -1,0 +1,11 @@
+{
+  "backend": "healthlake",
+  "submitted_patients": 50,
+  "seconds": 3830.984999999986,
+  "job_status": "COMPLETED",
+  "estimated_usd": 1.0,
+  "resources_imported": 76809,
+  "resources_rejected": 0,
+  "resources_scanned": 76809,
+  "sandbox_deployment_seconds": 207.9961556
+}

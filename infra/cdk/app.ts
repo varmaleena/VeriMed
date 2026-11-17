@@ -1,5 +1,7 @@
 import { App, Validations } from "aws-cdk-lib";
 import { AwsSolutionsChecks } from "cdk-nag";
+import { AgentCoreSpike } from "./agentcore-spike";
+import { FhirSpike } from "./fhir-spike";
 import { HealthScribeSpike } from "./healthscribe-spike";
 import { LiteLlmSpike } from "./litellm-spike";
 import { CellFoundation, HubFoundation } from "./foundation";
@@ -19,6 +21,27 @@ new CellFoundation(app, "CellFoundation", {
   env: { region, account: process.env.VERIMED_CELL_ACCOUNT },
 });
 Validations.of(app).addPlugins(new AwsSolutionsChecks(app));
+if (app.node.tryGetContext("agentCoreSpike") === "true") {
+  const bundle = process.env.VERIMED_AGENTCORE_BUNDLE;
+  const profileId = process.env.MODEL_CHALLENGER_ID;
+  const modelArns = process.env.VERIMED_SPIKE_MODEL_ARNS?.split(",");
+  if (!bundle || !profileId || !modelArns?.length) {
+    throw new Error(
+      "Provide the temporary Runtime bundle and Bedrock inference profile configuration",
+    );
+  }
+  new AgentCoreSpike(app, "AgentCoreSpike", {
+    bundle,
+    profileId,
+    modelArns,
+    env: { region, account: process.env.VERIMED_CELL_ACCOUNT },
+  });
+}
+if (app.node.tryGetContext("fhirSpike") === "true") {
+  new FhirSpike(app, "FhirSpike", {
+    env: { region, account: process.env.VERIMED_CELL_ACCOUNT },
+  });
+}
 if (app.node.tryGetContext("healthscribeSpike") === "true") {
   new HealthScribeSpike(app, "HealthScribeSpike", {
     env: { region, account: process.env.VERIMED_CELL_ACCOUNT },

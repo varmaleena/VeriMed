@@ -11,6 +11,16 @@ make synth
 
 The first Compose build compiles the pinned MinIO Community source. See [blockers](docs/BLOCKERS.md) for workflows that still need a VeriMed AWS account or live validation.
 
+On Windows PowerShell, the following commands run the same unit tests and CDK synthesis as `make test` and `make synth`. Run them from the repository root.
+
+```powershell
+pnpm install --frozen-lockfile
+pnpm --filter @verimed/cdk test
+pnpm --filter @verimed/cdk exec cdk synth HubFoundation CellFoundation
+```
+
+If the workspace dependencies are already installed and PowerShell cannot find pnpm, run `npm.cmd --prefix infra/cdk test`. To synthesize with those same installed dependencies, run `npm.cmd --prefix infra/cdk run build`, change into `infra/cdk`, and run `& .\node_modules\.bin\cdk.cmd synth HubFoundation CellFoundation --app 'node dist/app.js'`.
+
 For the Phase 0 AWS handoff, verify the deployed dev cell with the authorized profile.
 
 ```sh
@@ -18,3 +28,11 @@ aws cloudformation describe-stacks --stack-name CellFoundation --profile default
 ```
 
 Expect `CREATE_COMPLETE`. Local `make test` should report two passing foundation tests. `make synth` should synthesize both foundation stacks with cdk-nag enabled. The [spike evidence](docs/spikes/README.md) tracks the live checks and outstanding acceptance work.
+
+The HAPI benchmark uses the same Synthea cohort as HealthLake. With Docker Compose running and a fresh HAPI database, run the following command against the local prepared fixture.
+
+```powershell
+uv run --locked python spikes/s4_hapi_import.py .phase0-synthea/benchmark/hapi --output docs/spikes/s4-hapi.json
+```
+
+The script verifies that the dedicated HAPI database contains 50 patients and writes the elapsed import time.
