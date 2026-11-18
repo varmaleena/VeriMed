@@ -1,0 +1,13 @@
+{
+  "checked_at": "2026-11-18T14:07:55.266164+00:00",
+  "checks": {
+    "real_kms_chain": "VERIFIED",
+    "truncated_chain": "BROKEN",
+    "wrong_tenant": "BROKEN",
+    "invalid_signature": "BROKEN",
+    "tampered_payload": "BROKEN"
+  },
+  "signed_events": 3,
+  "product_records_written": 0,
+  "scope": "Cryptographic primitives only; persistence, Object Lock anchors, and sign-off remain pending"
+}

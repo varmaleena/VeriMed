@@ -5,6 +5,7 @@ import { CellFoundation, HubFoundation } from "./foundation";
 import { CellIdentity } from "./cell-identity";
 import { CellWorklist } from "./cell-worklist";
 import { CellFhirDemo } from "./cell-fhir-demo";
+import { CellLedger } from "./cell-ledger";
 
 for (const StackType of [HubFoundation, CellFoundation]) {
   test(`${StackType.name} uses isolated networking and encrypted flow logs`, () => {
@@ -121,4 +122,24 @@ test("FHIR demo uses encrypted synthetic preload and schedules only its own stac
       ]),
     },
   });
+});
+
+test("CellLedger retains an asymmetric signing key with cell tags", () => {
+  const template = Template.fromStack(
+    new CellLedger(new App(), "Ledger", { stage: "dev", tenant: "a" }),
+  );
+  template.hasResource("AWS::KMS::Key", {
+    Properties: Match.objectLike({
+      KeySpec: "ECC_NIST_P256",
+      KeyUsage: "SIGN_VERIFY",
+      Tags: Match.arrayWith([
+        { Key: "Env", Value: "dev" },
+        { Key: "Project", Value: "verimed" },
+        { Key: "Tenant", Value: "a" },
+      ]),
+    }),
+    DeletionPolicy: "Retain",
+    UpdateReplacePolicy: "Retain",
+  });
+  template.resourceCountIs("AWS::EC2::NatGateway", 0);
 });

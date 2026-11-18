@@ -3,6 +3,7 @@ import { AwsSolutionsChecks } from "cdk-nag";
 import { CellIdentity } from "./cell-identity";
 import { CellWorklist } from "./cell-worklist";
 import { CellFhirDemo } from "./cell-fhir-demo";
+import { CellLedger } from "./cell-ledger";
 import { AgentCoreSpike } from "./agentcore-spike";
 import { FhirSpike } from "./fhir-spike";
 import { HealthScribeSpike } from "./healthscribe-spike";
@@ -24,6 +25,13 @@ new CellFoundation(app, "CellFoundation", {
   env: { region, account: process.env.VERIMED_CELL_ACCOUNT },
 });
 Validations.of(app).addPlugins(new AwsSolutionsChecks(app));
+if (app.node.tryGetContext("cellLedger") === "true") {
+  new CellLedger(app, "CellLedger", {
+    stage,
+    tenant,
+    env: { region, account: process.env.VERIMED_CELL_ACCOUNT },
+  });
+}
 if (app.node.tryGetContext("cellFhirDemo") === "true") {
   const expiresAt = process.env.VERIMED_FHIR_EXPIRES_AT;
   if (!expiresAt) throw new Error("Provide the approved FHIR demo expiry");

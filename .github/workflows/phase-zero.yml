@@ -26,6 +26,7 @@ jobs:
       - run: git diff --exit-code -- packages/api-client/openapi.json packages/api-client/schema.d.ts
       - run: make test
       - run: make synth
+      - run: pnpm --filter @verimed/cdk exec cdk synth CellLedger -c cellLedger=true --output cdk.out/ci-ledger
       - run: pnpm --filter @verimed/cdk exec cdk synth CellWorklist -c cellWorklist=true --output cdk.out/ci-worklist
         env:
           VERIMED_API_BUNDLE: ${{ github.workspace }}/services/api
