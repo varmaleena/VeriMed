@@ -22,7 +22,7 @@ eval-full:
 	@exit 1
 
 lint:
-	pnpm exec eslint .
+	pnpm exec eslint . --max-warnings 0
 	uv run ruff check .
 	uv run ruff format --check .
 	uv run mypy spikes

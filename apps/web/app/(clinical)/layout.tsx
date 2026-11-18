@@ -1,14 +1,12 @@
-import { redirect } from "next/navigation";
-import { auth, signOut } from "../../auth";
+import { signOut } from "../../auth";
+import { requireSession } from "../../lib/session";
 import { ClinicalNavigation } from "./navigation";
 export default async function ClinicalLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
-  if (!session?.user || session.user.expiresAt <= Date.now() / 1000)
-    redirect("/login");
+  const session = await requireSession();
   const tenant = process.env.VERIMED_TENANT_NAME;
   if (!tenant) throw new Error("VERIMED_TENANT_NAME is required");
   return (

@@ -1,7 +1,7 @@
 import "server-only";
 import { headers } from "next/headers";
 import { getToken } from "next-auth/jwt";
-import { auth } from "../auth";
+import { requireSession } from "./session";
 import { redirect } from "next/navigation";
 
 export interface Unavailable {
@@ -13,9 +13,7 @@ export async function readCell<T>(
   resource: "encounters" | "patients",
   params: URLSearchParams,
 ): Promise<T | Unavailable> {
-  const session = await auth();
-  if (!session?.user || session.user.expiresAt <= Date.now() / 1000)
-    redirect("/login");
+  await requireSession();
   const base = process.env.CELL_API_URL;
   if (!base) throw new Error("Encounter service is awaiting configuration.");
   const secureCookie =

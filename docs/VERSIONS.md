@@ -15,3 +15,5 @@ The S4 benchmark uses the checksum-verified [Synthea v4.0.0 release](https://git
 Upstream releases verified the same day. uv 0.13.8, pgvector 0.8.3, Valkey 9.1.3, OTel Collector 0.165.0, Gitleaks 8.30.1, Trivy 0.76.2, Semgrep 1.185.0. The HAPI FHIR Compose image uses the verified starter tag `hapiproject/hapi:v8.12.0-2`.
 
 The last upstream MinIO Community source release is [RELEASE.2025-10-15T17-29-55Z](https://github.com/minio/minio/releases/tag/RELEASE.2025-10-15T17-29-55Z). Compose builds that source with upstream's declared Go 1.24.8 toolchain. Container tag availability and devcontainer feature digests are pending verification.
+
+The appearance slice adds eslint-config-next 16.4.6, matching the installed framework. Its published version and ESLint/TypeScript peer ranges were verified with npm registry metadata on November 18, 2026. The installed Next.js guide confirms ESLint 10 support. The repository now applies the framework's Core Web Vitals/React rules to the web app and the recommended TypeScript rules to source files; generated declarations and build outputs are excluded.
