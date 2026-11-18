@@ -22,6 +22,23 @@ export default async function Worklist({
     ? query.status
     : undefined;
   const result = await readWorklist(status);
+  if ("unavailable" in result) {
+    return (
+      <>
+        <h1>Worklist</h1>
+        <section className="panel" role="status">
+          <h2>Encounter service is starting or temporarily unavailable</h2>
+          <p className="muted">
+            The dev database can take a moment to wake up. Try again shortly.
+          </p>
+          <form action="/worklist">
+            {status && <input type="hidden" name="status" value={status} />}
+            <button type="submit">Try again</button>
+          </form>
+        </section>
+      </>
+    );
+  }
   return (
     <>
       <div className="page-heading">

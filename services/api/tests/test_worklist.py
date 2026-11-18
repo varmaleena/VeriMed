@@ -1,8 +1,54 @@
+import time
 from typing import Any
 from uuid import uuid4
 
 import pytest
 from app import main
+from botocore.exceptions import ClientError  # type: ignore[import-untyped]
+
+
+def test_paused_database_is_retried_before_read(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    attempts: list[int] = []
+    delays: list[int] = []
+
+    class Database:
+        def begin_transaction(self, **kwargs: Any) -> dict[str, str]:
+            attempts.append(1)
+            if len(attempts) < 3:
+                raise ClientError(
+                    {
+                        "Error": {
+                            "Code": "DatabaseResumingException",
+                            "Message": "resuming",
+                        }
+                    },
+                    "BeginTransaction",
+                )
+            return {"transactionId": "resumed"}
+
+    monkeypatch.setattr(time, "sleep", delays.append)
+    assert main.begin_read_transaction(Database(), {}) == "resumed"
+    assert delays == [2, 4]
+
+
+def test_database_resume_retries_are_bounded(monkeypatch: pytest.MonkeyPatch) -> None:
+    delays: list[int] = []
+
+    class Database:
+        def begin_transaction(self, **kwargs: Any) -> dict[str, str]:
+            raise ClientError(
+                {"Error": {"Code": "DatabaseResumingException", "Message": "resuming"}},
+                "BeginTransaction",
+            )
+
+    monkeypatch.setattr(time, "sleep", delays.append)
+    with pytest.raises(ClientError):
+        main.begin_read_transaction(Database(), {})
+    assert delays == [2, 4, 8]
+
+
 from fastapi.testclient import TestClient
 
 

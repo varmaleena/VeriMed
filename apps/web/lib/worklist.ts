@@ -7,7 +7,9 @@ import { redirect } from "next/navigation";
 import type { components } from "@verimed/api-client";
 export type WorklistResult = components["schemas"]["EncounterPage"];
 
-export async function readWorklist(status?: string): Promise<WorklistResult> {
+export async function readWorklist(
+  status?: string,
+): Promise<WorklistResult | { unavailable: true }> {
   const session = await auth();
   if (!session?.user || session.user.expiresAt <= Date.now() / 1000)
     redirect("/login");
@@ -33,11 +35,11 @@ export async function readWorklist(status?: string): Promise<WorklistResult> {
     headers: { Authorization: `Bearer ${token.accessToken}` },
     cache: "no-store",
     signal: AbortSignal.timeout(28000),
-  });
+  }).catch(() => null);
+  if (!response) return { unavailable: true };
   if (response.status === 401) redirect("/login");
   if (response.status === 403)
     throw new Error("Your account does not have access to the Worklist.");
-  if (!response.ok)
-    throw new Error("The encounter service is unavailable. Try again shortly.");
+  if (!response.ok) return { unavailable: true };
   return (await response.json()) as WorklistResult;
 }

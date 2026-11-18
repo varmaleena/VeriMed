@@ -8,7 +8,7 @@ An empty database returns an empty list. No encounter records are fabricated.
 3. Open /worklist. Expect the empty Worklist with a status filter.
 4. Apply the Signed filter. Expect an empty filtered view.
 5. Sign out and reopen /worklist. Expect a redirect to /login.
-6. If Aurora has paused, the first request can show a service error while it resumes. Choose Try again.
+6. After Aurora pauses, the API retries its wake-up response for up to fourteen seconds. If the service still cannot respond, the Worklist shows an inline availability message with Try again.
 
 The backend has unit tests for anonymous denial, denied-role access and transaction rollback.
 The live isolation runner inserts two tenants inside a transaction and verifies that the API database role cannot see the other tenant. All test rows are rolled back.

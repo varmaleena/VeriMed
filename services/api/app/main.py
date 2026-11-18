@@ -2,12 +2,14 @@
 
 import json
 import os
+import time
 from datetime import datetime
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
 import boto3  # type: ignore[import-untyped]
 import structlog
+from botocore.exceptions import ClientError  # type: ignore[import-untyped]
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -56,6 +58,17 @@ class EncounterPage(BaseModel):
 
 def aws_client(service: str) -> Any:
     return boto3.client(service)
+
+
+def begin_read_transaction(client: Any, connection: dict[str, str]) -> str:
+    for delay in (2, 4, 8):
+        try:
+            return str(client.begin_transaction(**connection)["transactionId"])
+        except ClientError as error:
+            if error.response["Error"]["Code"] != "DatabaseResumingException":
+                raise
+            time.sleep(delay)
+    return str(client.begin_transaction(**connection)["transactionId"])
 
 
 def principal(
@@ -145,7 +158,7 @@ def list_encounters(
         record_exception=False,
         set_status_on_exception=False,
     ):
-        transaction = client.begin_transaction(**connection)["transactionId"]
+        transaction = begin_read_transaction(client, connection)
         try:
             client.execute_statement(
                 **connection,
