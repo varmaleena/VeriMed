@@ -24,6 +24,7 @@ new CellFoundation(app, "CellFoundation", {
 Validations.of(app).addPlugins(new AwsSolutionsChecks(app));
 if (app.node.tryGetContext("cellIdentity") === "true") {
   new CellIdentity(app, "CellIdentity", {
+    demoWithoutMfa: app.node.tryGetContext("demoWithoutMfa") === "true",
     env: { region, account: process.env.VERIMED_CELL_ACCOUNT },
   });
 }

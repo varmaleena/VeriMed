@@ -16,16 +16,22 @@ import {
 } from "aws-cdk-lib/aws-cognito";
 import { Construct } from "constructs";
 
+interface CellIdentityProps extends StackProps {
+  demoWithoutMfa?: boolean;
+}
+
 export class CellIdentity extends Stack {
-  constructor(scope: Construct, id: string, props: StackProps) {
+  constructor(scope: Construct, id: string, props: CellIdentityProps) {
     super(scope, id, props);
     const pool = new UserPool(this, "Users", {
       selfSignUpEnabled: false,
       signInAliases: { email: true },
       autoVerify: { email: true },
       accountRecovery: AccountRecovery.EMAIL_ONLY,
-      mfa: Mfa.REQUIRED,
-      mfaSecondFactor: { sms: false, otp: true },
+      mfa: props.demoWithoutMfa ? Mfa.OFF : Mfa.REQUIRED,
+      mfaSecondFactor: props.demoWithoutMfa
+        ? undefined
+        : { sms: false, otp: true },
       passwordPolicy: {
         minLength: 14,
         requireLowercase: true,
@@ -37,8 +43,15 @@ export class CellIdentity extends Stack {
     Validations.of(pool).acknowledge({
       id: "AwsSolutions::AwsSolutions-COG8",
       reason:
-        "The first dev slice uses mandatory TOTP on the default feature plan. Plus-tier threat protection remains a production rollout decision.",
+        "The dev slice uses the default feature plan. Plus-tier threat protection remains a production rollout decision.",
     });
+    if (props.demoWithoutMfa) {
+      Validations.of(pool).acknowledge({
+        id: "AwsSolutions::AwsSolutions-COG2",
+        reason:
+          "The owner explicitly requested password-only sign-in for the synthetic-data demo. See ADR 007.",
+      });
+    }
     const client = new UserPoolClient(this, "WebClient", {
       userPool: pool,
       generateSecret: true,

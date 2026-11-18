@@ -11,6 +11,8 @@ Start the local app from the repository root after the dev identity stack and lo
 
 Open http://localhost:3000/login and use the Cognito invitation delivered to your email.
 
+The owner requested password-only demo sign-in. The deployed demo uses `demoWithoutMfa=true`, so skip TOTP enrollment and expect password-only login in steps 3 and 6. The standard configuration still requires TOTP when that context flag is false. See ADR 007.
+
 1. Open /worklist in a private browser window. Expect a redirect to /login.
 2. Choose hospital sign-in. Enter the invited email and temporary password.
 3. Set a new password, enroll an authenticator app, and enter its TOTP.

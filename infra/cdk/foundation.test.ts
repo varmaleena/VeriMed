@@ -48,3 +48,12 @@ test("CellIdentity requires TOTP and permits only the authorization code flow", 
     CallbackURLs: ["http://localhost:3000/api/auth/callback/cognito"],
   });
 });
+
+test("CellIdentity disables MFA only for the explicit demo configuration", () => {
+  const template = Template.fromStack(
+    new CellIdentity(new App(), "DemoIdentity", { demoWithoutMfa: true }),
+  );
+  template.hasResourceProperties("AWS::Cognito::UserPool", {
+    MfaConfiguration: "OFF",
+  });
+});
