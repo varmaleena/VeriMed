@@ -2,6 +2,7 @@ import { test } from "node:test";
 import { App } from "aws-cdk-lib";
 import { Match, Template } from "aws-cdk-lib/assertions";
 import { CellFoundation, HubFoundation } from "./foundation";
+import { CellIdentity } from "./cell-identity";
 
 for (const StackType of [HubFoundation, CellFoundation]) {
   test(`${StackType.name} uses isolated networking and encrypted flow logs`, () => {
@@ -30,3 +31,20 @@ for (const StackType of [HubFoundation, CellFoundation]) {
     template.resourceCountIs("AWS::Budgets::Budget", 1);
   });
 }
+
+test("CellIdentity requires TOTP and permits only the authorization code flow", () => {
+  const template = Template.fromStack(
+    new CellIdentity(new App(), "Identity", {}),
+  );
+  template.hasResourceProperties("AWS::Cognito::UserPool", {
+    MfaConfiguration: "ON",
+    EnabledMfas: ["SOFTWARE_TOKEN_MFA"],
+    AdminCreateUserConfig: { AllowAdminCreateUserOnly: true },
+  });
+  template.hasResourceProperties("AWS::Cognito::UserPoolClient", {
+    AllowedOAuthFlows: ["code"],
+    GenerateSecret: true,
+    EnableTokenRevocation: true,
+    CallbackURLs: ["http://localhost:3000/api/auth/callback/cognito"],
+  });
+});

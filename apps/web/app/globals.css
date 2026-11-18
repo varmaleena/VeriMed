@@ -1,0 +1,181 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+:root {
+  color-scheme: light dark;
+  --bg: #f7f8fa;
+  --panel: #fff;
+  --fg: #111827;
+  --muted: #5b6574;
+  --border: #e3e6eb;
+  --primary: #1f5eff;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e1116;
+    --panel: #151a21;
+    --fg: #e6eaf0;
+    --muted: #98a2b3;
+    --border: #2a313b;
+  }
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font:
+    14px/1.45 Inter,
+    system-ui,
+    sans-serif;
+}
+h1 {
+  font-size: 24px;
+  letter-spacing: -0.6px;
+  margin: 0 0 24px;
+}
+h2 {
+  font-size: 16px;
+  margin: 0 0 8px;
+}
+p {
+  margin: 0 0 20px;
+}
+button {
+  background: var(--primary);
+  color: #fff;
+  border: 0;
+  border-radius: 6px;
+  padding: 12px 16px;
+  font: inherit;
+  cursor: pointer;
+}
+button.secondary {
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+}
+a,
+button {
+  outline-offset: 4px;
+}
+:focus-visible {
+  outline: 3px solid var(--primary);
+}
+.brand {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+.muted,
+.caption {
+  color: var(--muted);
+}
+.caption {
+  font-size: 12px;
+}
+.login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.login-panel {
+  width: min(440px, 100%);
+  background: var(--panel);
+  padding: 40px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.login-panel .brand {
+  color: var(--primary);
+  margin-bottom: 40px;
+}
+.login-panel button {
+  width: 100%;
+}
+.login-panel .caption {
+  margin: 32px 0 0;
+}
+.shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template: 48px 1fr / 216px 1fr;
+}
+header {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+}
+.tenant {
+  border-left: 1px solid var(--border);
+  padding-left: 24px;
+}
+.identity {
+  margin-left: auto;
+  color: var(--muted);
+}
+aside {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-right: 1px solid var(--border);
+  padding: 24px 12px;
+  background: var(--panel);
+}
+aside .caption {
+  padding: 12px;
+  margin: 0;
+}
+nav a {
+  display: block;
+  text-decoration: none;
+  color: var(--primary);
+  font-weight: 600;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+}
+.shell main {
+  padding: 32px;
+}
+.panel {
+  padding: 32px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+}
+.panel p {
+  margin: 0;
+}
+.skip {
+  position: absolute;
+  left: 16px;
+  top: -100px;
+  background: var(--panel);
+  padding: 8px;
+  z-index: 1;
+}
+.skip:focus {
+  top: 8px;
+}
+@media (max-width: 800px) {
+  .shell {
+    grid-template-columns: 140px 1fr;
+  }
+  header {
+    gap: 12px;
+    padding: 0 12px;
+  }
+  .identity {
+    display: none;
+  }
+  .shell main {
+    padding: 20px;
+  }
+}

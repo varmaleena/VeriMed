@@ -1,5 +1,7 @@
 # Phase 0 versions
 
+The first Phase 1 UI slice pins Next.js 16.4.6, React and React DOM 19.3.1, React type definitions 19.3.0, and Auth.js 5.0.0-beta.32. npm release metadata was checked on November 18, 2026. Auth.js v5 is a prerelease required by the specification. TypeScript checks application source strictly and skips third-party declaration checking because the Auth.js package includes unresolved optional provider declarations.
+
 npm stable release metadata verified on November 16, 2026. pnpm 12.21.0, AWS CDK library 2.277.0, CDK CLI 2.1148.1, cdk-nag 3.0.2, constructs 10.8.1, TypeScript 7.0.2, Node types 26.6.6, ESLint 10.15.0, Prettier 3.10.1.
 
 PyPI release metadata verified the same day. Ruff 0.17.5, mypy 2.4.1, pre-commit 4.7.0. Python stays on the specified 3.12 line.

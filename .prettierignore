@@ -5,6 +5,7 @@ uv.lock
 pnpm-lock.yaml
 **/dist/
 **/cdk.out/
+**/.next/
 **/cdk.context.json
 **/.venv*/
 docs/spikes/s5-us-east-1.json

@@ -9,6 +9,8 @@ cdk.context.json
 __pycache__/
 cdk.out/
 dist/
+.next/
+*.tsbuildinfo
 .env
 .env.*
 !.env.example
