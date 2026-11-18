@@ -1,0 +1,25 @@
+{
+  "checked_at": "2026-11-18T14:32:27.447229+00:00",
+  "anchored_events": 3,
+  "retained_anchor_objects": 1,
+  "diagnostic_events_written": 4,
+  "clinical_records_written": 0,
+  "retention_mode": "COMPLIANCE",
+  "retain_until": "2033-11-18T14:32:03.647000+00:00",
+  "checks": {
+    "durable_chain_to_merkle_anchor": "passed",
+    "kms_signed_manifest": "passed",
+    "pinned_s3_version_read": "passed",
+    "conditional_retry_idempotency": "passed",
+    "sse_kms_and_retention_metadata": "passed",
+    "version_delete_denial": "passed",
+    "delete_marker_denial": "passed",
+    "retention_shortening_denial": "passed",
+    "unconditional_overwrite_denial": "passed",
+    "cross_tenant_reference_denial": "passed",
+    "rewritten_database_head_detection": "passed",
+    "unanchored_tail_fail_closed": "passed",
+    "calendar_year_retention": "passed"
+  },
+  "scheduled_daily_job": "pending"
+}

@@ -160,3 +160,51 @@ test("CellLedger retains an asymmetric signing key with cell tags", () => {
   });
   template.resourceCountIs("AWS::EC2::NatGateway", 0);
 });
+
+test("Ledger anchors enforce seven-year compliance retention and conditional writes", () => {
+  const template = Template.fromStack(
+    new CellLedger(new App(), "LedgerAnchors", { stage: "dev", tenant: "a" }),
+  );
+  template.hasResource("AWS::S3::Bucket", {
+    Properties: Match.objectLike({
+      VersioningConfiguration: { Status: "Enabled" },
+      ObjectLockEnabled: true,
+      ObjectLockConfiguration: {
+        ObjectLockEnabled: "Enabled",
+        Rule: { DefaultRetention: { Mode: "COMPLIANCE", Years: 7 } },
+      },
+      BucketEncryption: {
+        ServerSideEncryptionConfiguration: [
+          {
+            BucketKeyEnabled: true,
+            ServerSideEncryptionByDefault: {
+              SSEAlgorithm: "aws:kms",
+              KMSMasterKeyID: Match.anyValue(),
+            },
+          },
+        ],
+      },
+      PublicAccessBlockConfiguration: {
+        BlockPublicAcls: true,
+        BlockPublicPolicy: true,
+        IgnorePublicAcls: true,
+        RestrictPublicBuckets: true,
+      },
+      LoggingConfiguration: Match.anyValue(),
+    }),
+    DeletionPolicy: "Retain",
+    UpdateReplacePolicy: "Retain",
+  });
+  template.hasResourceProperties("AWS::S3::BucketPolicy", {
+    PolicyDocument: {
+      Statement: Match.arrayWith([
+        Match.objectLike({ Action: "s3:DeleteObject", Effect: "Deny" }),
+        Match.objectLike({
+          Action: "s3:PutObject",
+          Effect: "Deny",
+          Condition: { Null: { "s3:if-none-match": "true" } },
+        }),
+      ]),
+    },
+  });
+});
