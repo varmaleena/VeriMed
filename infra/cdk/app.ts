@@ -26,9 +26,30 @@ new CellFoundation(app, "CellFoundation", {
 });
 Validations.of(app).addPlugins(new AwsSolutionsChecks(app));
 if (app.node.tryGetContext("cellLedger") === "true") {
+  const workerEnabled = app.node.tryGetContext("cellLedgerWorker") === "true";
+  const workerConfig = workerEnabled
+    ? {
+        bundle: process.env.VERIMED_API_BUNDLE!,
+        tenantId: process.env.VERIMED_TENANT_ID!,
+        clusterArn: process.env.DATABASE_CLUSTER_ARN!,
+        readerSecretArn: process.env.DATABASE_RUNTIME_SECRET_ARN!,
+        databaseKeyArn: process.env.DATABASE_KEY_ARN!,
+      }
+    : undefined;
+  if (workerConfig && Object.values(workerConfig).some((value) => !value))
+    throw new Error(
+      "Complete ledger worker deployment configuration is required",
+    );
   new CellLedger(app, "CellLedger", {
     stage,
     tenant,
+    worker: workerConfig
+      ? {
+          ...workerConfig,
+          reserveConcurrency:
+            app.node.tryGetContext("ledgerUseUnreserved") !== "true",
+        }
+      : undefined,
     env: { region, account: process.env.VERIMED_CELL_ACCOUNT },
   });
 }

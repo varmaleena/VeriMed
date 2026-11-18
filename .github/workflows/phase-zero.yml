@@ -22,11 +22,19 @@ jobs:
       - run: pnpm --filter @verimed/web typecheck
       - run: pnpm --filter @verimed/web build
       - run: uv run --all-packages python services/api/export_openapi.py
+      - run: uv run --all-packages python services/api/export_ledger_schema.py
       - run: pnpm --filter @verimed/api-client generate
-      - run: git diff --exit-code -- packages/api-client/openapi.json packages/api-client/schema.d.ts
+      - run: git diff --exit-code -- packages/api-client/openapi.json packages/api-client/schema.d.ts packages/api-client/ledger-anchor-job.schema.json
       - run: make test
       - run: make synth
       - run: pnpm --filter @verimed/cdk exec cdk synth CellLedger -c cellLedger=true --output cdk.out/ci-ledger
+      - run: pnpm --filter @verimed/cdk exec cdk synth CellLedger -c cellLedger=true -c cellLedgerWorker=true --output cdk.out/ci-ledger-worker
+        env:
+          VERIMED_API_BUNDLE: ${{ github.workspace }}/services/api
+          VERIMED_TENANT_ID: fe54cd8b-3dac-43d3-9a30-1f588cb60d35
+          DATABASE_CLUSTER_ARN: arn:aws:rds:us-east-1:123456789012:cluster:ci-only
+          DATABASE_RUNTIME_SECRET_ARN: arn:aws:secretsmanager:us-east-1:123456789012:secret:ci-reader-ABCDEF
+          DATABASE_KEY_ARN: arn:aws:kms:us-east-1:123456789012:key/00000000-0000-0000-0000-000000000001
       - run: pnpm --filter @verimed/cdk exec cdk synth CellWorklist -c cellWorklist=true --output cdk.out/ci-worklist
         env:
           VERIMED_API_BUNDLE: ${{ github.workspace }}/services/api

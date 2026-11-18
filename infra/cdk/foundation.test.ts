@@ -208,3 +208,96 @@ test("Ledger anchors enforce seven-year compliance retention and conditional wri
     },
   });
 });
+
+test("Daily anchor worker has bounded retries and cannot access writer credentials", () => {
+  const readerArn =
+    "arn:aws:secretsmanager:us-east-1:123456789012:secret:ci-reader-ABCDEF";
+  const template = Template.fromStack(
+    new CellLedger(new App(), "ScheduledLedger", {
+      stage: "dev",
+      tenant: "a",
+      env: { account: "123456789012", region: "us-east-1" },
+      worker: {
+        bundle: __dirname,
+        tenantId: "00000000-0000-0000-0000-000000000001",
+        clusterArn: "arn:aws:rds:us-east-1:123456789012:cluster:ci-only",
+        readerSecretArn: readerArn,
+        databaseKeyArn:
+          "arn:aws:kms:us-east-1:123456789012:key/00000000-0000-0000-0000-000000000001",
+      },
+    }),
+  );
+  template.hasResourceProperties("AWS::Lambda::Function", {
+    ReservedConcurrentExecutions: 1,
+    Timeout: 300,
+    Handler: "app.ledger_worker.handler",
+    Environment: {
+      Variables: Match.objectLike({ DATABASE_SECRET_ARN: readerArn }),
+    },
+  });
+  template.hasResourceProperties("AWS::Events::Rule", {
+    ScheduleExpression: "cron(30 0 * * ? *)",
+    State: "ENABLED",
+    Targets: Match.arrayWith([
+      Match.objectLike({
+        Input: JSON.stringify({ job: "daily" }),
+        RetryPolicy: {
+          MaximumEventAgeInSeconds: 7200,
+          MaximumRetryAttempts: 2,
+        },
+        DeadLetterConfig: Match.anyValue(),
+      }),
+    ]),
+  });
+  template.hasResourceProperties("AWS::Lambda::EventInvokeConfig", {
+    MaximumRetryAttempts: 2,
+    MaximumEventAgeInSeconds: 7200,
+    DestinationConfig: { OnFailure: Match.anyValue() },
+  });
+  template.hasResourceProperties("AWS::SQS::Queue", {
+    KmsMasterKeyId: Match.anyValue(),
+    MessageRetentionPeriod: 1209600,
+  });
+  template.resourceCountIs("AWS::CloudWatch::Alarm", 3);
+  const policies = Object.values(template.findResources("AWS::IAM::Policy"));
+  const statements = policies.flatMap(
+    (policy) => policy.Properties.PolicyDocument.Statement,
+  );
+  const secretReads = statements.filter((statement) =>
+    [statement.Action].flat().includes("secretsmanager:GetSecretValue"),
+  );
+  ok(secretReads.length === 1);
+  ok(secretReads[0].Resource === readerArn);
+  const s3Writes = statements.filter((statement) =>
+    [statement.Action].flat().includes("s3:PutObject"),
+  );
+  ok(s3Writes.length === 1);
+  ok(
+    JSON.stringify(s3Writes[0].Resource).includes(
+      "anchors/00000000-0000-0000-0000-000000000001/",
+    ),
+  );
+});
+
+test("The explicit dev quota fallback does not reserve Lambda concurrency", () => {
+  const template = Template.fromStack(
+    new CellLedger(new App(), "LowQuotaLedger", {
+      stage: "dev",
+      tenant: "a",
+      worker: {
+        bundle: __dirname,
+        tenantId: "00000000-0000-0000-0000-000000000001",
+        clusterArn: "arn:aws:rds:us-east-1:123456789012:cluster:ci-only",
+        readerSecretArn:
+          "arn:aws:secretsmanager:us-east-1:123456789012:secret:ci-reader-ABCDEF",
+        databaseKeyArn:
+          "arn:aws:kms:us-east-1:123456789012:key/00000000-0000-0000-0000-000000000001",
+        reserveConcurrency: false,
+      },
+    }),
+  );
+  template.hasResourceProperties("AWS::Lambda::Function", {
+    Handler: "app.ledger_worker.handler",
+    ReservedConcurrentExecutions: Match.absent(),
+  });
+});

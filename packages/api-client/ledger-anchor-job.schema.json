@@ -1,0 +1,13 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "job": {
+      "default": "daily",
+      "enum": ["daily", "checkpoint"],
+      "title": "Job",
+      "type": "string"
+    }
+  },
+  "title": "AnchorJob",
+  "type": "object"
+}

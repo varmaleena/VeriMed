@@ -6,3 +6,8 @@
 - **Local end-to-end validation.** GNU Make and a running Docker Engine with Compose v2 are required for clean-clone bootstrap and service health checks.
 
 On November 18, the interrupted native HAPI database was reopened and queried successfully. It contained 23 of the required 50 patients. The server was stopped after the count query. The partial run has no valid completion time. Evidence is saved in docs/spikes/s4-hapi-recovery.json. Run the complete benchmark on a host with Docker Compose, sufficient memory, and a fresh PostgreSQL database.
+
+## Phase 1 operations follow-up
+
+- **Reserved Lambda concurrency.** On November 18, `get-account-settings` in the authorized dev account reported total and unreserved concurrency of 10 in us-east-1. AWS requires 100 executions to remain unreserved when allocating a function reservation. The ledger worker uses the explicit dev-only `ledgerUseUnreserved=true` CDK context. To reserve its intended single execution, obtain a regional quota with at least 101 total executions and enough remaining unreserved capacity; then redeploy without that context. No quota increase was requested automatically.
+- **Alarm notifications.** The ledger worker has CloudWatch alarms for execution errors, queued failures and a missing 36-hour heartbeat. Connecting paging/email requires the owner's notification destination and corresponding IaC subscription; alarm state alone is not a paging integration.

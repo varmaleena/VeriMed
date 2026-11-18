@@ -1,6 +1,6 @@
 # Phase 1 ledger anchor test
 
-The anchor foundation signs a daily Merkle checkpoint and stores it as a retained S3 object version. Verification pins the bucket, key, version ID and body digest, then checks KMS signatures, encryption and seven-year COMPLIANCE retention. This slice is on-demand. Automatic daily scheduling, an authoritative checkpoint inventory and freshness policy, and the Ledger UI remain pending.
+The anchor foundation signs a daily Merkle checkpoint and stores it as a retained S3 object version. Verification pins the bucket, key, version ID and body digest, then checks KMS signatures, encryption and seven-year COMPLIANCE retention. This test exercises the on-demand primitives. The [scheduled worker slice](PHASE1_LEDGER_WORKER_TEST.md) adds daily execution, S3 version inventory and freshness checks. The Ledger UI remains pending.
 
 From PowerShell in `F:\AWS MSP`, run the unit tests:
 

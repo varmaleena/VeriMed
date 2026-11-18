@@ -4,7 +4,7 @@
   "name": "@verimed/api-client",
   "types": "./schema.d.ts",
   "scripts": {
-    "generate": "openapi-typescript openapi.json -o schema.d.ts && prettier --write openapi.json schema.d.ts"
+    "generate": "openapi-typescript openapi.json -o schema.d.ts && prettier --write openapi.json schema.d.ts ledger-anchor-job.schema.json"
   },
   "devDependencies": {
     "openapi-typescript": "7.13.0"

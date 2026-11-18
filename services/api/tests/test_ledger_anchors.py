@@ -54,7 +54,23 @@ class S3:
         if self.body:
             raise ClientError({"Error": {"Code": "PreconditionFailed"}}, "PutObject")
         self.body = kwargs["Body"]
+        self.key = kwargs["Key"]
         return {"VersionId": "unit-version"}
+
+    def list_object_versions(self, **kwargs: Any) -> dict[str, Any]:
+        assert kwargs["Prefix"] == f"anchors/{TENANT}/"
+        return {
+            "IsTruncated": False,
+            "Versions": [
+                {
+                    "Key": self.key,
+                    "VersionId": "unit-version",
+                    "LastModified": self.last_modified,
+                }
+            ]
+            if self.body
+            else [],
+        }
 
     def get_object(self, **kwargs: Any) -> dict[str, Any]:
         self.requests.append(kwargs)
@@ -224,3 +240,196 @@ def test_retention_timestamp_rounding_tolerance_is_bounded(
 
     monkeypatch.setattr(s3, "get_object_retention", too_short)
     assert store.verify(entries, TENANT, head, reference).status == "UNVERIFIED"
+
+
+def test_inventory_discovers_pinned_version_and_checks_freshness() -> None:
+    from app.ledger_inventory import CheckpointInventory
+
+    store, _, entries, head, reference = setup()
+    inventory = CheckpointInventory(store)
+    checkpoint = inventory.latest(TENANT)
+    assert checkpoint is not None and checkpoint.reference == reference
+    assert (
+        inventory.verify_latest(
+            entries, TENANT, head, now=datetime(2026, 1, 1, 2, tzinfo=UTC)
+        ).status
+        == "VERIFIED"
+    )
+    result = inventory.verify_latest(
+        entries, TENANT, head, now=datetime(2026, 1, 3, tzinfo=UTC)
+    )
+    assert result.status == "UNVERIFIED" and "stale" in result.reason
+
+
+def test_inventory_pagination_and_bounds(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.ledger_inventory import CheckpointInventory
+
+    store, s3, _, _, reference = setup()
+    calls: list[dict[str, Any]] = []
+
+    def pages(**kwargs: Any) -> dict[str, Any]:
+        calls.append(kwargs)
+        if "KeyMarker" not in kwargs:
+            return {
+                "IsTruncated": True,
+                "NextKeyMarker": "page-one",
+                "NextVersionIdMarker": "version-one",
+            }
+        assert kwargs["VersionIdMarker"] == "version-one"
+        return {
+            "IsTruncated": False,
+            "Versions": [
+                {
+                    "Key": reference.key,
+                    "VersionId": reference.version_id,
+                    "LastModified": s3.last_modified,
+                }
+            ],
+        }
+
+    monkeypatch.setattr(s3, "list_object_versions", pages)
+    assert CheckpointInventory(store).latest(TENANT) is not None
+    assert len(calls) == 2
+    monkeypatch.setattr(
+        s3,
+        "list_object_versions",
+        lambda **kwargs: {
+            "IsTruncated": True,
+            "NextKeyMarker": "same",
+            "NextVersionIdMarker": "same",
+        },
+    )
+    with pytest.raises(ValueError, match="pagination"):
+        CheckpointInventory(store).latest(TENANT)
+
+
+def test_inventory_does_not_ignore_invalid_or_hidden_checkpoints(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.ledger_inventory import CheckpointInventory
+
+    store, s3, entries, head, _ = setup()
+    monkeypatch.setattr(
+        s3,
+        "list_object_versions",
+        lambda **kwargs: {"DeleteMarkers": [{"Key": "hidden"}]},
+    )
+    assert (
+        CheckpointInventory(store).verify_latest(entries, TENANT, head).status
+        == "UNVERIFIED"
+    )
+    monkeypatch.setattr(
+        s3,
+        "list_object_versions",
+        lambda **kwargs: {
+            "Versions": [
+                {
+                    "Key": f"anchors/{TENANT}/2026-01-01/999-" + "0" * 64 + ".json",
+                    "VersionId": "unit-version",
+                    "LastModified": s3.last_modified,
+                }
+            ]
+        },
+    )
+    assert (
+        CheckpointInventory(store).verify_latest(entries, TENANT, head).status
+        == "UNVERIFIED"
+    )
+
+
+def test_version_two_seal_refresh_preserves_version_one_encoding() -> None:
+    from app.ledger_anchors import anchor_key
+
+    entries, head = chain()
+    legacy = create_anchor(entries, TENANT, head, DAY, Signer())
+    assert b"sealed_at" not in canonical(legacy)
+    sealed = create_anchor(
+        entries,
+        TENANT,
+        head,
+        DAY,
+        Signer(),
+        sealed_at=datetime(2026, 1, 2, 0, 30, tzinfo=UTC),
+    )
+    refreshed = create_anchor(
+        entries,
+        TENANT,
+        head,
+        DAY,
+        Signer(),
+        sealed_at=datetime(2026, 1, 3, 0, 30, tzinfo=UTC),
+    )
+    assert sealed.manifest.version == 2
+    assert anchor_key(sealed) != anchor_key(refreshed)
+    assert SignedAnchor.model_validate_json(canonical(legacy)) == legacy
+
+
+def test_worker_is_idempotent_within_daily_slot() -> None:
+    from typing import cast
+
+    from app.ledger_store import LedgerStore
+    from app.ledger_worker import AnchorJob, run
+
+    entries, head = chain()
+
+    class Reader:
+        signer = Signer()
+
+        def read(
+            self, tenant_id: UUID, max_events: int
+        ) -> tuple[list[SignedEntry], Head]:
+            assert tenant_id == TENANT and max_events == 200
+            return entries, head
+
+    s3 = S3()
+    now = datetime(2026, 1, 2, 6, tzinfo=UTC)
+    s3.last_modified = now
+    store = AnchorStore(s3, "unit-bucket", KEY, Signer())
+    assert (
+        run(AnchorJob(), TENANT, cast(LedgerStore, Reader()), store, now).status
+        == "SEALED"
+    )
+    assert (
+        run(AnchorJob(), TENANT, cast(LedgerStore, Reader()), store, now).status
+        == "SEALED"
+    )
+
+
+def test_worker_does_not_reseal_an_empty_database_with_retained_history() -> None:
+    from typing import cast
+
+    from app.ledger_store import LedgerStore
+    from app.ledger_worker import AnchorJob, run
+
+    store, _, _, _, _ = setup()
+
+    class Reader:
+        signer = Signer()
+
+        def read(
+            self, tenant_id: UUID, max_events: int
+        ) -> tuple[list[SignedEntry], Head]:
+            return [], Head(seq=0, hash=GENESIS)
+
+    with pytest.raises(ValueError, match="retained checkpoint history"):
+        run(
+            AnchorJob(),
+            TENANT,
+            cast(LedgerStore, Reader()),
+            store,
+            datetime(2026, 1, 2, tzinfo=UTC),
+        )
+
+
+def test_worker_rejects_tenant_override_before_aws_access(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import boto3  # type: ignore[import-untyped]
+    from app.ledger_worker import handler
+
+    def unexpected_client(*args: Any, **kwargs: Any) -> Any:
+        pytest.fail("Invalid job reached AWS")
+
+    monkeypatch.setattr(boto3, "client", unexpected_client)
+    with pytest.raises(RuntimeError, match="could not complete"):
+        handler({"job": "checkpoint", "tenant_id": str(UUID(int=2))}, None)

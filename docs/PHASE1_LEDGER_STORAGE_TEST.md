@@ -1,6 +1,6 @@
 # Phase 1 ledger storage test
 
-This slice adds durable Aurora ledger storage and a separate generated writer credential. It does not expose a public append endpoint or enable clinical sign-off. Independent Object Lock checkpoints are now available through the [on-demand anchor foundation](PHASE1_LEDGER_ANCHOR_TEST.md); automatic scheduling and checkpoint inventory remain pending. Phase 1 remains in progress.
+This slice adds durable Aurora ledger storage and a separate generated writer credential. It does not expose a public append endpoint or enable clinical sign-off. Independent Object Lock checkpoints are available through the [anchor foundation](PHASE1_LEDGER_ANCHOR_TEST.md), with daily scheduling and inventory in the [worker slice](PHASE1_LEDGER_WORKER_TEST.md). Phase 1 remains in progress.
 
 From PowerShell in `F:\AWS MSP`, run the unit tests:
 

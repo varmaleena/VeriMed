@@ -1,0 +1,29 @@
+{
+  "checked_at": "2026-11-18T15:03:11.673643+00:00",
+  "initial_daily_status": "EMPTY",
+  "worker_checkpoint_status": "SEALED",
+  "worker_checked_events": 1,
+  "operational_diagnostic_events_written": 1,
+  "clinical_records_written": 0,
+  "schedule_utc": "00:30 daily",
+  "schedule_ist": "06:00 daily",
+  "checks": {
+    "deployed_worker_read_only_login": "passed",
+    "real_worker_kms_s3_checkpoint": "passed",
+    "daily_slot_idempotency": "passed",
+    "independent_version_inventory": "passed",
+    "fresh_checkpoint_verification": "passed",
+    "stale_checkpoint_fail_closed": "passed",
+    "tenant_override_rejection": "passed",
+    "writer_secret_iam_denial": "passed",
+    "admin_secret_iam_denial": "passed",
+    "other_tenant_prefix_iam_denial": "passed",
+    "enabled_daily_schedule": "passed",
+    "encrypted_terminal_queue": "passed",
+    "async_retry_and_failure_configuration": "passed"
+  },
+  "legacy_receipt_checked": true,
+  "next_scheduled_delivery": "not yet observed",
+  "dlq_delivery": "configured, exhaustion path not exercised live",
+  "alarm_notifications": "operator destination pending"
+}

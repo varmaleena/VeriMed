@@ -10,7 +10,14 @@ from uuid import UUID
 import structlog
 from botocore.exceptions import ClientError  # type: ignore[import-untyped]
 from opentelemetry import trace
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import (
+    AwareDatetime,
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+    model_validator,
+)
 
 from app.ledger import (
     ALGORITHM,
@@ -28,7 +35,7 @@ DOMAIN = b"chartvigil.ledger.anchor.v1\x00"
 
 def canonical(model: BaseModel) -> bytes:
     return json.dumps(
-        model.model_dump(mode="json"),
+        model.model_dump(mode="json", exclude_none=True),
         sort_keys=True,
         ensure_ascii=True,
         separators=(",", ":"),
@@ -54,12 +61,24 @@ def merkle_root(hashes: list[str]) -> str:
 
 class AnchorManifest(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
-    version: Literal[1] = 1
+    version: Literal[1, 2] = 1
     tenant_id: UUID
     day: date
     head: Head
     count: int = Field(gt=0, le=10000, strict=True)
     merkle_root: str = Field(pattern=r"^[0-9a-f]{64}$")
+    sealed_at: AwareDatetime | None = None
+
+    @field_validator("sealed_at")
+    @classmethod
+    def normalize_seal(cls, value: datetime | None) -> datetime | None:
+        return value.astimezone(UTC) if value is not None else None
+
+    @model_validator(mode="after")
+    def validate_version(self) -> "AnchorManifest":
+        if (self.version == 2) != (self.sealed_at is not None):
+            raise ValueError("Only version 2 anchors contain a signed seal time")
+        return self
 
 
 class SignedAnchor(BaseModel):
@@ -84,6 +103,8 @@ def create_anchor(
     head: Head,
     day: date,
     signer: DigestSigner,
+    *,
+    sealed_at: datetime | None = None,
 ) -> SignedAnchor:
     result = verify_chain(entries, tenant_id, signer, head)
     if result.status != "VERIFIED":
@@ -94,11 +115,13 @@ def create_anchor(
         if entry.event.created_at.astimezone(UTC).date() == day
     ]
     manifest = AnchorManifest(
+        version=2 if sealed_at is not None else 1,
         tenant_id=tenant_id,
         day=day,
         head=head,
         count=len(daily_hashes),
         merkle_root=merkle_root(daily_hashes),
+        sealed_at=sealed_at,
     )
     signature = signer.sign(hashlib.sha256(DOMAIN + canonical(manifest)).digest())
     return SignedAnchor(
