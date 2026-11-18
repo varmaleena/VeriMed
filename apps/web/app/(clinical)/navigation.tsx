@@ -18,6 +18,12 @@ export function ClinicalNavigation() {
       >
         Patients
       </Link>
+      <Link
+        href="/settings"
+        aria-current={pathname === "/settings" ? "page" : undefined}
+      >
+        Settings
+      </Link>
     </nav>
   );
 }
