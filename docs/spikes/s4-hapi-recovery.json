@@ -1,0 +1,8 @@
+{
+  "database": "h2",
+  "estimated_aws_usd": 0,
+  "seconds": null,
+  "status": "recovered-partial-run",
+  "backend": "hapi",
+  "verified_patients": 23
+}

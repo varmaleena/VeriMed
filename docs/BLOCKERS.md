@@ -5,4 +5,4 @@
 - **Hosted CI.** Both the spec source and writable workspace started without Git metadata. Local Git is initialized. Hosted checks require the VeriMed GitHub remote.
 - **Local end-to-end validation.** GNU Make and a running Docker Engine with Compose v2 are required for clean-clone bootstrap and service health checks.
 
-The latest native HAPI retry reached transaction processing with the corrected cohort. The process stopped before writing the final patient-count and timing report. Run the benchmark on a separate host with Docker Compose and a fresh database to obtain a complete result.
+On November 18, the interrupted native HAPI database was reopened and queried successfully. It contained 23 of the required 50 patients. The server was stopped after the count query. The partial run has no valid completion time. Evidence is saved in docs/spikes/s4-hapi-recovery.json. Run the complete benchmark on a host with Docker Compose, sufficient memory, and a fresh PostgreSQL database.
