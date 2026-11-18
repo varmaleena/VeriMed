@@ -69,8 +69,8 @@ class LedgerEvent(BaseModel):
             separators=(",", ":"),
             allow_nan=False,
         ).encode("ascii")
-        if len(result) > 65536:
-            raise ValueError("Ledger event exceeds 64 KiB")
+        if len(result) > 16384:
+            raise ValueError("Ledger event exceeds 16 KiB")
         return result
 
 

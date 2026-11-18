@@ -1,0 +1,24 @@
+{
+  "checked_at": "2026-11-18T14:19:07.976591+00:00",
+  "concurrent_appends": 3,
+  "durable_diagnostic_events": 5,
+  "clinical_records_written": 0,
+  "checks": {
+    "concurrent_sequence": "passed",
+    "kms_signatures_after_read": "passed",
+    "idempotent_retry": "passed",
+    "idempotency_conflict": "passed",
+    "forced_rls": "passed",
+    "cross_tenant_read_denial": "passed",
+    "cross_tenant_insert_denial": "passed",
+    "writer_update_delete_truncate_denial": "passed",
+    "head_update_denial": "passed",
+    "owner_mutation_trigger": "passed",
+    "reader_write_denial": "passed",
+    "bounded_read": "passed",
+    "real_kms_failure_rollback": "passed",
+    "repeatable_read_snapshot": "passed",
+    "tamper_detection": "passed"
+  },
+  "independent_object_lock_anchors": "pending"
+}

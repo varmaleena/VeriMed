@@ -131,6 +131,22 @@ export class CellWorklist extends Stack {
         excludePunctuation: true,
       },
     });
+    const ledgerSecret = new Secret(this, "LedgerWriterCredentials", {
+      encryptionKey: key,
+      generateSecretString: {
+        secretStringTemplate: JSON.stringify({
+          username: "verimed_ledger_writer",
+        }),
+        generateStringKey: "password",
+        passwordLength: 48,
+        excludePunctuation: true,
+      },
+    });
+    Validations.of(ledgerSecret).acknowledge({
+      id: "AwsSolutions::AwsSolutions-SMG4",
+      reason:
+        "Rotation is pending the CellData operations slice. This credential is restricted to ledger append/read and is not granted to the web API.",
+    });
     Validations.of(runtimeSecret).acknowledge({
       id: "AwsSolutions::AwsSolutions-SMG4",
       reason:
@@ -315,6 +331,9 @@ export class CellWorklist extends Stack {
     new CfnOutput(this, "ClusterArn", { value: cluster.clusterArn });
     new CfnOutput(this, "SecretArn", { value: cluster.secret!.secretArn });
     new CfnOutput(this, "RuntimeSecretArn", { value: runtimeSecret.secretArn });
+    new CfnOutput(this, "LedgerWriterSecretArn", {
+      value: ledgerSecret.secretArn,
+    });
     new CfnOutput(this, "PolicyStoreId", { value: store.attrPolicyStoreId });
   }
 }

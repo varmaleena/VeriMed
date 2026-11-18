@@ -2,14 +2,12 @@
 
 import json
 import os
-import time
 from datetime import UTC, datetime
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
 import boto3  # type: ignore[import-untyped]
 import structlog
-from botocore.exceptions import ClientError  # type: ignore[import-untyped]
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -21,6 +19,7 @@ from opentelemetry.sdk.trace.export import ConsoleSpanExporter, SimpleSpanProces
 from pydantic import AwareDatetime, BaseModel
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.database import begin_transaction
 from app.fhir import PatientPage, read_patients
 
 provider = TracerProvider()
@@ -29,6 +28,7 @@ trace.set_tracer_provider(provider)
 tracer = trace.get_tracer("verimed.api")
 structlog.configure(processors=[structlog.processors.JSONRenderer()])
 logger = structlog.get_logger()
+begin_read_transaction = begin_transaction
 app = FastAPI(title="ChartVigil cell API", version="0.1.0", root_path="/v1")
 bearer = HTTPBearer(auto_error=False)
 Status = Literal[
@@ -60,17 +60,6 @@ class EncounterPage(BaseModel):
 
 def aws_client(service: str) -> Any:
     return boto3.client(service)
-
-
-def begin_read_transaction(client: Any, connection: dict[str, str]) -> str:
-    for delay in (2, 4, 8):
-        try:
-            return str(client.begin_transaction(**connection)["transactionId"])
-        except ClientError as error:
-            if error.response["Error"]["Code"] != "DatabaseResumingException":
-                raise
-            time.sleep(delay)
-    return str(client.begin_transaction(**connection)["transactionId"])
 
 
 def principal(

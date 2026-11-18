@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import { ok } from "node:assert/strict";
 import { App } from "aws-cdk-lib";
 import { Match, Template } from "aws-cdk-lib/assertions";
 import { CellFoundation, HubFoundation } from "./foundation";
@@ -87,6 +88,22 @@ test("Worklist database is private, encrypted and can auto-pause, and routes req
     RouteKey: "GET /v1/encounters",
     AuthorizationType: "JWT",
   });
+  template.hasResourceProperties("AWS::SecretsManager::Secret", {
+    KmsKeyId: Match.anyValue(),
+    GenerateSecretString: Match.objectLike({
+      SecretStringTemplate: JSON.stringify({
+        username: "verimed_ledger_writer",
+      }),
+    }),
+  });
+  for (const policy of Object.values(
+    template.findResources("AWS::IAM::Policy"),
+  )) {
+    ok(
+      !JSON.stringify(policy).includes("LedgerWriterCredentials"),
+      "The web API must not receive the ledger writer secret",
+    );
+  }
 });
 
 test("FHIR demo uses encrypted synthetic preload and schedules only its own stack for teardown", () => {
