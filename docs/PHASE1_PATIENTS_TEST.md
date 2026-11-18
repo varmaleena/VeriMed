@@ -7,8 +7,8 @@ The current window expires November 20, 2026 at 18:34:54 IST (13:04:54 UTC); the
 
 1. Sign in at http://localhost:3000/login and choose Patients in the left navigation.
 2. Expect live FHIR records with patient tokens, birth years, sex and source record identifiers.
-3. Choose Next patients and verify that the records change.
-4. Choose First page to return to the beginning.
+3. At the table footer, expect ‹ 1–20 ›. The previous arrow is disabled on the first page. Choose the next arrow and verify the records change and the range becomes 21–40.
+4. Choose the previous arrow to return to 1–20. Check both arrows with keyboard navigation. While loading, both are disabled; a failed read retains the current page and displays an error. Refresh starts from the first page. A total appears only when the live FHIR search supplies one.
 5. Open Worklist and verify that its real encounter list still loads.
 6. Sign out and open /patients. Expect a redirect to /login.
 7. After the displayed test-window expiry, expect an inline closed-window message.
