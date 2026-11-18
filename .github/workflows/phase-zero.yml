@@ -19,8 +19,19 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: make lint
       - run: pnpm --filter @verimed/cdk build
+      - run: pnpm --filter @verimed/web typecheck
+      - run: pnpm --filter @verimed/web build
+      - run: uv run --all-packages python services/api/export_openapi.py
+      - run: pnpm --filter @verimed/api-client generate
+      - run: git diff --exit-code -- packages/api-client/openapi.json packages/api-client/schema.d.ts
       - run: make test
       - run: make synth
+      - run: pnpm --filter @verimed/cdk exec cdk synth CellWorklist -c cellWorklist=true --output cdk.out/ci-worklist
+        env:
+          VERIMED_API_BUNDLE: ${{ github.workspace }}/services/api
+          AUTH_COGNITO_ID: ci-synthesis-only
+          AUTH_COGNITO_ISSUER: https://example.invalid
+          VERIMED_TENANT_ID: fe54cd8b-3dac-43d3-9a30-1f588cb60d35
   security:
     runs-on: ubuntu-latest
     steps:

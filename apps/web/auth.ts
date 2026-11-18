@@ -16,6 +16,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => ({
   callbacks: {
     jwt({ token, account, profile }) {
       if (account && profile) {
+        token.accessToken = account.access_token;
         if (profile.iss !== process.env.AUTH_COGNITO_ISSUER)
           throw new Error("Unexpected identity issuer");
         token.roles = Array.isArray(profile["cognito:groups"])

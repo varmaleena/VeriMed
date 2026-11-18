@@ -3,6 +3,7 @@ import { App } from "aws-cdk-lib";
 import { Match, Template } from "aws-cdk-lib/assertions";
 import { CellFoundation, HubFoundation } from "./foundation";
 import { CellIdentity } from "./cell-identity";
+import { CellWorklist } from "./cell-worklist";
 
 for (const StackType of [HubFoundation, CellFoundation]) {
   test(`${StackType.name} uses isolated networking and encrypted flow logs`, () => {
@@ -55,5 +56,33 @@ test("CellIdentity disables MFA only for the explicit demo configuration", () =>
   );
   template.hasResourceProperties("AWS::Cognito::UserPool", {
     MfaConfiguration: "OFF",
+  });
+});
+
+test("Worklist database is private, encrypted and can auto-pause, and routes require JWT", () => {
+  const template = Template.fromStack(
+    new CellWorklist(new App(), "Worklist", {
+      bundle: __dirname,
+      issuer: "https://example.invalid",
+      clientId: "test-client",
+      tenantId: "fe54cd8b-3dac-43d3-9a30-1f588cb60d35",
+    }),
+  );
+  template.resourceCountIs("AWS::EC2::NatGateway", 0);
+  template.hasResourceProperties("AWS::RDS::DBCluster", {
+    StorageEncrypted: true,
+    EnableHttpEndpoint: true,
+    ServerlessV2ScalingConfiguration: {
+      MinCapacity: 0,
+      MaxCapacity: 1,
+      SecondsUntilAutoPause: 300,
+    },
+  });
+  template.hasResourceProperties("AWS::RDS::DBInstance", {
+    PubliclyAccessible: false,
+  });
+  template.hasResourceProperties("AWS::ApiGatewayV2::Route", {
+    RouteKey: "GET /v1/encounters",
+    AuthorizationType: "JWT",
   });
 });

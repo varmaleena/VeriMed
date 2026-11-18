@@ -1,5 +1,7 @@
 # Phase 0 versions
 
+The Worklist slice pins FastAPI 0.163.2, Mangum 0.22.0, boto3 1.44.5, OpenTelemetry SDK 1.45.2, structlog 26.1.0, pytest 9.2.0, and httpx 0.28.1. The OpenAPI generator is openapi-typescript 7.13.0. These releases were verified against the package registries on November 18, 2026. Aurora PostgreSQL 17.11 was verified through the regional RDS engine inventory.
+
 The first Phase 1 UI slice pins Next.js 16.4.6, React and React DOM 19.3.1, React type definitions 19.3.0, and Auth.js 5.0.0-beta.32. npm release metadata was checked on November 18, 2026. Auth.js v5 is a prerelease required by the specification. TypeScript checks application source strictly and skips third-party declaration checking because the Auth.js package includes unresolved optional provider declarations.
 
 npm stable release metadata verified on November 16, 2026. pnpm 12.21.0, AWS CDK library 2.277.0, CDK CLI 2.1148.1, cdk-nag 3.0.2, constructs 10.8.1, TypeScript 7.0.2, Node types 26.6.6, ESLint 10.15.0, Prettier 3.10.1.

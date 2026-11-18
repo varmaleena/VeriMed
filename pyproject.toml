@@ -12,5 +12,9 @@ members = ["services/*", "agents/*"]
 [tool.mypy]
 strict = true
 
+[tool.pytest.ini_options]
+pythonpath = ["services/api"]
+testpaths = ["services/api/tests"]
+
 [tool.ruff]
 extend-exclude = ["docs/0*.md", "AGENTS.md", ".venv-s2", ".venv-s2-proxy"]

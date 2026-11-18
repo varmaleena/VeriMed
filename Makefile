@@ -26,9 +26,11 @@ lint:
 	uv run ruff check .
 	uv run ruff format --check .
 	uv run mypy spikes
+	uv run --all-packages mypy services/api
 	pnpm exec prettier --check .
 
 test:
+	uv run --all-packages pytest
 	pnpm --filter @verimed/cdk test
 
 synth:

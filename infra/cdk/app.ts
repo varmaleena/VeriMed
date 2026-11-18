@@ -1,6 +1,7 @@
 import { App, Validations } from "aws-cdk-lib";
 import { AwsSolutionsChecks } from "cdk-nag";
 import { CellIdentity } from "./cell-identity";
+import { CellWorklist } from "./cell-worklist";
 import { AgentCoreSpike } from "./agentcore-spike";
 import { FhirSpike } from "./fhir-spike";
 import { HealthScribeSpike } from "./healthscribe-spike";
@@ -22,6 +23,21 @@ new CellFoundation(app, "CellFoundation", {
   env: { region, account: process.env.VERIMED_CELL_ACCOUNT },
 });
 Validations.of(app).addPlugins(new AwsSolutionsChecks(app));
+if (app.node.tryGetContext("cellWorklist") === "true") {
+  const bundle = process.env.VERIMED_API_BUNDLE;
+  const issuer = process.env.AUTH_COGNITO_ISSUER;
+  const clientId = process.env.AUTH_COGNITO_ID;
+  const tenantId = process.env.VERIMED_TENANT_ID;
+  if (!bundle || !issuer || !clientId || !tenantId)
+    throw new Error("Worklist deployment configuration is required");
+  new CellWorklist(app, "CellWorklist", {
+    bundle,
+    issuer,
+    clientId,
+    tenantId,
+    env: { region, account: process.env.VERIMED_CELL_ACCOUNT },
+  });
+}
 if (app.node.tryGetContext("cellIdentity") === "true") {
   new CellIdentity(app, "CellIdentity", {
     demoWithoutMfa: app.node.tryGetContext("demoWithoutMfa") === "true",

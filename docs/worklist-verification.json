@@ -1,0 +1,8 @@
+{
+  "lambda_physician_read": "passed",
+  "database_write": "denied",
+  "lambda_unknown_role": "denied",
+  "database_rls": "passed",
+  "gateway_anonymous": "denied",
+  "browser_flow": "pending user test"
+}
