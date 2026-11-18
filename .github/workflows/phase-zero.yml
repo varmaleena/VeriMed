@@ -32,6 +32,9 @@ jobs:
           AUTH_COGNITO_ID: ci-synthesis-only
           AUTH_COGNITO_ISSUER: https://example.invalid
           VERIMED_TENANT_ID: fe54cd8b-3dac-43d3-9a30-1f588cb60d35
+      - run: pnpm --filter @verimed/cdk exec cdk synth CellFhirDemo -c cellFhirDemo=true --output cdk.out/ci-fhir
+        env:
+          VERIMED_FHIR_EXPIRES_AT: "2099-01-01T00:00:00Z"
   security:
     runs-on: ubuntu-latest
     steps:

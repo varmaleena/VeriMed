@@ -3,7 +3,7 @@
 import json
 import os
 import time
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
@@ -20,6 +20,8 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import ConsoleSpanExporter, SimpleSpanProcessor
 from pydantic import AwareDatetime, BaseModel
 from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from app.fhir import PatientPage, read_patients
 
 provider = TracerProvider()
 provider.add_span_processor(SimpleSpanProcessor(ConsoleSpanExporter()))
@@ -104,7 +106,7 @@ def principal(
     )
 
 
-def authorize(user: Principal) -> None:
+def authorize(user: Principal, action: str = "ListEncounters") -> None:
     tenant = str(user.tenant_id)
     with tracer.start_as_current_span(
         "authorization.list_encounters",
@@ -114,7 +116,7 @@ def authorize(user: Principal) -> None:
         result = aws_client("verifiedpermissions").is_authorized(
             policyStoreId=os.environ["POLICY_STORE_ID"],
             principal={"entityType": "VeriMed::User", "entityId": user.sub},
-            action={"actionType": "VeriMed::Action", "actionId": "ListEncounters"},
+            action={"actionType": "VeriMed::Action", "actionId": action},
             resource={"entityType": "VeriMed::Tenant", "entityId": tenant},
             entities={
                 "entityList": [
@@ -141,7 +143,7 @@ def authorize(user: Principal) -> None:
             },
         )
     if result["decision"] != "ALLOW" or result.get("errors"):
-        raise HTTPException(403, "Worklist access is not permitted")
+        raise HTTPException(403, "Clinical data access is not permitted")
 
 
 def list_encounters(
@@ -283,6 +285,37 @@ def encounters(
                 ],
             },
             WorklistReads=1,
+        )
+        return result
+
+
+@app.get("/patients", response_model=PatientPage, tags=["patients"])
+def patients(
+    user: Annotated[Principal, Depends(principal)],
+    cursor: Annotated[str | None, Query(max_length=8192)] = None,
+) -> PatientPage:
+    with tracer.start_as_current_span(
+        "api.patients.list", record_exception=False, set_status_on_exception=False
+    ):
+        authorize(user, "ListPatients")
+        expiry = datetime.fromisoformat(os.environ["FHIR_EXPIRES_AT"])
+        if datetime.now(UTC) >= expiry:
+            raise HTTPException(410, "The synthetic-data testing window has ended")
+        result = read_patients(cursor)
+        logger.info(
+            "patients_read",
+            outcome="success",
+            _aws={
+                "Timestamp": int(datetime.now().timestamp() * 1000),
+                "CloudWatchMetrics": [
+                    {
+                        "Namespace": "VeriMed",
+                        "Dimensions": [[]],
+                        "Metrics": [{"Name": "PatientReads", "Unit": "Count"}],
+                    }
+                ],
+            },
+            PatientReads=1,
         )
         return result
 

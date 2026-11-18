@@ -2,6 +2,7 @@ import { App, Validations } from "aws-cdk-lib";
 import { AwsSolutionsChecks } from "cdk-nag";
 import { CellIdentity } from "./cell-identity";
 import { CellWorklist } from "./cell-worklist";
+import { CellFhirDemo } from "./cell-fhir-demo";
 import { AgentCoreSpike } from "./agentcore-spike";
 import { FhirSpike } from "./fhir-spike";
 import { HealthScribeSpike } from "./healthscribe-spike";
@@ -23,6 +24,14 @@ new CellFoundation(app, "CellFoundation", {
   env: { region, account: process.env.VERIMED_CELL_ACCOUNT },
 });
 Validations.of(app).addPlugins(new AwsSolutionsChecks(app));
+if (app.node.tryGetContext("cellFhirDemo") === "true") {
+  const expiresAt = process.env.VERIMED_FHIR_EXPIRES_AT;
+  if (!expiresAt) throw new Error("Provide the approved FHIR demo expiry");
+  new CellFhirDemo(app, "CellFhirDemo", {
+    expiresAt,
+    env: { region, account: process.env.VERIMED_CELL_ACCOUNT },
+  });
+}
 if (app.node.tryGetContext("cellWorklist") === "true") {
   const bundle = process.env.VERIMED_API_BUNDLE;
   const issuer = process.env.AUTH_COGNITO_ISSUER;
@@ -35,6 +44,23 @@ if (app.node.tryGetContext("cellWorklist") === "true") {
     issuer,
     clientId,
     tenantId,
+    fhir:
+      process.env.FHIR_ENDPOINT &&
+      process.env.FHIR_DATASTORE_ARN &&
+      process.env.VERIMED_FHIR_EXPIRES_AT
+        ? {
+            endpoint: process.env.FHIR_ENDPOINT,
+            arn: process.env.FHIR_DATASTORE_ARN,
+            expiresAt: process.env.VERIMED_FHIR_EXPIRES_AT,
+            keyArn:
+              process.env.FHIR_KMS_KEY_ARN ??
+              (() => {
+                throw new Error(
+                  "FHIR_KMS_KEY_ARN is required for encrypted FHIR reads",
+                );
+              })(),
+          }
+        : undefined,
     env: { region, account: process.env.VERIMED_CELL_ACCOUNT },
   });
 }

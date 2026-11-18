@@ -1,0 +1,8 @@
+{
+  "live_first_page_records": 20,
+  "live_second_page_records": 20,
+  "reported_total": null,
+  "role_denial": "passed",
+  "expires_at": "2026-11-20T13:04:54.000Z",
+  "browser_flow": "pending user test"
+}

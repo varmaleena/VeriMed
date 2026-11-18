@@ -35,6 +35,7 @@ interface WorklistProps extends StackProps {
   issuer: string;
   clientId: string;
   tenantId: string;
+  fhir?: { endpoint: string; arn: string; expiresAt: string; keyArn: string };
 }
 
 export class CellWorklist extends Stack {
@@ -109,6 +110,13 @@ export class CellWorklist extends Stack {
                   context: { type: "Record", attributes: {} },
                 },
               },
+              ListPatients: {
+                appliesTo: {
+                  principalTypes: ["User"],
+                  resourceTypes: ["Tenant"],
+                  context: { type: "Record", attributes: {} },
+                },
+              },
             },
           },
         }),
@@ -137,6 +145,15 @@ export class CellWorklist extends Stack {
         },
       },
     });
+    new CfnPolicy(this, "ReadPatients", {
+      policyStoreId: store.attrPolicyStoreId,
+      definition: {
+        static: {
+          statement:
+            'permit(principal is VeriMed::User, action == VeriMed::Action::"ListPatients", resource is VeriMed::Tenant) when { principal.tenant == resource.tenant && principal.roles.containsAny(["PHYSICIAN", "PHARMACIST", "CODER", "AUDITOR", "TENANT_ADMIN"]) };',
+        },
+      },
+    });
     const apiLogs = new LogGroup(this, "ApiLogs", {
       retention: RetentionDays.ONE_MONTH,
     });
@@ -154,8 +171,34 @@ export class CellWorklist extends Stack {
         POLICY_STORE_ID: store.attrPolicyStoreId,
         TENANT_ID: props.tenantId,
         COGNITO_CLIENT_ID: props.clientId,
+        ...(props.fhir
+          ? {
+              FHIR_ENDPOINT: props.fhir.endpoint,
+              FHIR_EXPIRES_AT: props.fhir.expiresAt,
+            }
+          : {}),
       },
     });
+    if (props.fhir)
+      api.addToRolePolicy(
+        new PolicyStatement({
+          actions: ["healthlake:SearchWithGet"],
+          resources: [props.fhir.arn],
+        }),
+      );
+    if (props.fhir)
+      api.addToRolePolicy(
+        new PolicyStatement({
+          actions: ["kms:Decrypt", "kms:DescribeKey"],
+          resources: [props.fhir.keyArn],
+          conditions: {
+            StringEquals: {
+              "kms:ViaService": `healthlake.${this.region}.amazonaws.com`,
+              "kms:CallerAccount": this.account,
+            },
+          },
+        }),
+      );
     runtimeSecret.grantRead(api);
     api.addToRolePolicy(
       new PolicyStatement({
@@ -196,7 +239,12 @@ export class CellWorklist extends Stack {
       payloadFormatVersion: "2.0",
       timeoutInMillis: 30000,
     });
-    for (const path of ["/v1/encounters", "/v1/health", "/v1/openapi.json"]) {
+    for (const path of [
+      "/v1/encounters",
+      "/v1/patients",
+      "/v1/health",
+      "/v1/openapi.json",
+    ]) {
       new CfnRoute(this, path.replaceAll("/", "_"), {
         apiId: http.ref,
         routeKey: `GET ${path}`,

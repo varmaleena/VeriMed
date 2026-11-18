@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth, signOut } from "../../auth";
+import { ClinicalNavigation } from "./navigation";
 export default async function ClinicalLayout({
   children,
 }: {
@@ -31,11 +32,7 @@ export default async function ClinicalLayout({
         </form>
       </header>
       <aside>
-        <nav aria-label="Clinical navigation">
-          <a href="/worklist" aria-current="page">
-            Worklist
-          </a>
-        </nav>
+        <ClinicalNavigation />
         <p className="caption">
           HIPAA-aligned design,
           <br />

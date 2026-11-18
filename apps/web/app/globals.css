@@ -265,3 +265,22 @@ tbody tr:last-child td {
     flex-direction: column;
   }
 }
+nav a:not([aria-current="page"]) {
+  background: transparent;
+  color: var(--muted);
+  font-weight: 500;
+}
+.pagination {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: center;
+}
+.pagination p {
+  margin: 0;
+}
+.pagination a {
+  color: var(--primary);
+  text-decoration: none;
+}

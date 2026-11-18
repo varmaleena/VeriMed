@@ -4,6 +4,7 @@ import { Match, Template } from "aws-cdk-lib/assertions";
 import { CellFoundation, HubFoundation } from "./foundation";
 import { CellIdentity } from "./cell-identity";
 import { CellWorklist } from "./cell-worklist";
+import { CellFhirDemo } from "./cell-fhir-demo";
 
 for (const StackType of [HubFoundation, CellFoundation]) {
   test(`${StackType.name} uses isolated networking and encrypted flow logs`, () => {
@@ -84,5 +85,40 @@ test("Worklist database is private, encrypted and can auto-pause, and routes req
   template.hasResourceProperties("AWS::ApiGatewayV2::Route", {
     RouteKey: "GET /v1/encounters",
     AuthorizationType: "JWT",
+  });
+});
+
+test("FHIR demo uses encrypted synthetic preload and schedules only its own stack for teardown", () => {
+  const template = Template.fromStack(
+    new CellFhirDemo(new App(), "FhirDemo", {
+      expiresAt: "2099-01-01T00:00:00Z",
+    }),
+  );
+  template.hasResourceProperties("AWS::HealthLake::FHIRDatastore", {
+    PreloadDataConfig: { PreloadDataType: "SYNTHEA" },
+    NlpConfiguration: { Status: "DISABLED" },
+    SseConfiguration: {
+      KmsEncryptionConfig: {
+        CmkType: "CUSTOMER_MANAGED_KMS_KEY",
+        KmsKeyId: Match.anyValue(),
+      },
+    },
+  });
+  template.hasResourceProperties("AWS::Scheduler::Schedule", {
+    ScheduleExpression: "at(2099-01-01T00:00:00)",
+    ScheduleExpressionTimezone: "UTC",
+    Target: Match.objectLike({
+      Arn: "arn:aws:scheduler:::aws-sdk:cloudformation:deleteStack",
+    }),
+  });
+  template.hasResourceProperties("AWS::IAM::Policy", {
+    PolicyDocument: {
+      Statement: Match.arrayWith([
+        Match.objectLike({
+          Action: "cloudformation:DeleteStack",
+          Resource: { Ref: "AWS::StackId" },
+        }),
+      ]),
+    },
   });
 });
