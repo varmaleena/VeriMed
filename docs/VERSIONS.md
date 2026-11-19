@@ -17,3 +17,7 @@ Upstream releases verified the same day. uv 0.13.8, pgvector 0.8.3, Valkey 9.1.3
 The last upstream MinIO Community source release is [RELEASE.2025-10-15T17-29-55Z](https://github.com/minio/minio/releases/tag/RELEASE.2025-10-15T17-29-55Z). Compose builds that source with upstream's declared Go 1.24.8 toolchain. Container tag availability and devcontainer feature digests are pending verification.
 
 The appearance slice adds eslint-config-next 16.4.6, matching the installed framework. Its published version and ESLint/TypeScript peer ranges were verified with npm registry metadata on November 18, 2026. The installed Next.js guide confirms ESLint 10 support. The repository now applies the framework's Core Web Vitals/React rules to the web app and the recommended TypeScript rules to source files; generated declarations and build outputs are excluded.
+
+The Phase 1 CKS reference client reuses the previously verified pins: httpx 0.28.1,
+Pydantic 2.14.3, OpenTelemetry API 1.45.2, structlog 26.1.0, and pytest 9.2.0.
+No additional package version was introduced for this slice.

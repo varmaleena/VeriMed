@@ -11,3 +11,16 @@ On November 18, the interrupted native HAPI database was reopened and queried su
 
 - **Reserved Lambda concurrency.** On November 18, `get-account-settings` in the authorized dev account reported total and unreserved concurrency of 10 in us-east-1. AWS requires 100 executions to remain unreserved when allocating a function reservation. The ledger worker uses the explicit dev-only `ledgerUseUnreserved=true` CDK context. To reserve its intended single execution, obtain a regional quota with at least 101 total executions and enough remaining unreserved capacity; then redeploy without that context. No quota increase was requested automatically.
 - **Alarm notifications.** The ledger worker has CloudWatch alarms for execution errors, queued failures and a missing 36-hour heartbeat. Connecting paging/email requires the owner's notification destination and corresponding IaC subscription; alarm state alone is not a paging integration.
+
+## CKS hub account — 2026-11-19
+
+The configured default profile is account 160885292760 (dev cell), and no other profile is recorded.
+Organizations describe-organization returned AWSOrganizationsNotInUseException.
+Enterprise target: separate management, hub, and tenant-cell accounts, with no PHI in hub storage.
+Needed before deployment: an owner-provisioned hub account/profile and CDK deployment role/bootstrap,
+or management-account credentials plus a unique owner-supplied hub account contact for authorized account provisioning.
+The existing Cognito invitation address is not authorization to use that address as an AWS account contact.
+No organization/account/billing changes were made. Hub PrivateLink, authenticated service hosting,
+Valkey cache, reference mirror, and deployed cross-account acceptance remain unfinished.
+A registered openFDA API key stored in Secrets Manager and a shared quota limiter are needed for sustained service use;
+the bounded public-reference smoke probe used the documented no-key allowance.

@@ -1,0 +1,69 @@
+{
+  "checked_at": "2026-11-19T07:33:11.661620+00:00",
+  "input_sha256": "c07b1911ba440eef8eb707b0b850f6eeb640c37fc73bcfdf0ca4e03b0a53073c",
+  "original_status": "REVIEW_REQUIRED",
+  "original_reason": "NORMALIZED_MATCH_REQUIRES_REVIEW",
+  "selected_rxcui": null,
+  "original_candidate_count": 1,
+  "canonical_round_trip_status": "REVIEW_REQUIRED",
+  "canonical_round_trip_candidates": 2,
+  "candidate_reference_probes": [
+    {
+      "reference_probe_rxcui": "861007",
+      "class_status": "REVIEW_REQUIRED",
+      "class_reason": "UNSPECIFIED_RELATION_REQUIRES_REVIEW",
+      "class_count": 32,
+      "unspecified_relationships": 2,
+      "class_relationship_sources": [
+        "ATC",
+        "ATCPROD",
+        "DAILYMED",
+        "FDASPL",
+        "MEDRT",
+        "SNOMEDCT",
+        "VA"
+      ],
+      "label_status": "REVIEW_REQUIRED",
+      "label_count": 3,
+      "label_total": 95,
+      "label_results_truncated": true
+    },
+    {
+      "reference_probe_rxcui": "860975",
+      "class_status": "REVIEW_REQUIRED",
+      "class_reason": "UNSPECIFIED_RELATION_REQUIRES_REVIEW",
+      "class_count": 34,
+      "unspecified_relationships": 3,
+      "class_relationship_sources": [
+        "ATC",
+        "ATCPROD",
+        "DAILYMED",
+        "FDASPL",
+        "MEDRT",
+        "SNOMEDCT",
+        "VA"
+      ],
+      "label_status": "REVIEW_REQUIRED",
+      "label_count": 3,
+      "label_total": 79,
+      "label_results_truncated": true
+    }
+  ],
+  "source_response_hashes": [
+    "8a2600ea692ce58930504a533e4f62ed942a645d3804eef4013503d9498df6d5",
+    "7040a8ae447673516ea1282706f74a6672c1dd3c46fb9f9a6c051937410bcb00",
+    "663fbb7208bc361f1964d29b652ed34d466365138f538db0b0adda8ce9f20c03",
+    "326e47f8a50469efbf52ff96002f8a028d6ecb16bcf38a7154fb0aa48ecd940d",
+    "e578222530989052aa54872c5a3b52a904233d48721b4bfa5a1a0b1c9aeeae12",
+    "663fbb7208bc361f1964d29b652ed34d466365138f538db0b0adda8ce9f20c03",
+    "011b443ea715f6c7372ac298cdf53ab8f6299e9a5f049bd47611b17c03e67b03",
+    "ba35209bb49f7501641291a634428ff861a17f02fa959d060b8b43829e114d1a",
+    "c699621d3d3c07df83623b21087825d3883fde3fa8d9748e9bb147065f8892c7",
+    "8500bc6a733c7f4ff53ccd8e7af821b52c3eb76e3a981ca96097b4ade663d102"
+  ],
+  "live_reference_transport_and_parsing": "PASSED",
+  "candidate_probes_are_clinical_selections": false,
+  "hub_private_link": "BLOCKED: separate hub account not configured",
+  "valkey_cache_and_reference_mirror": "pending hub runtime",
+  "clinical_safety_verdicts": "not implemented in this reference client"
+}

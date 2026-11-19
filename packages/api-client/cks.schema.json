@@ -1,0 +1,380 @@
+{
+  "$defs": {
+    "ClassMembership": {
+      "additionalProperties": false,
+      "properties": {
+        "class_id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Class Id",
+          "type": "string"
+        },
+        "class_name": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Class Name",
+          "type": "string"
+        },
+        "class_type": {
+          "maxLength": 50,
+          "minLength": 1,
+          "title": "Class Type",
+          "type": "string"
+        },
+        "relationship": {
+          "anyOf": [
+            {
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Relationship"
+        },
+        "relationship_source": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Relationship Source",
+          "type": "string"
+        },
+        "member_rxcui": {
+          "pattern": "^[1-9][0-9]{0,11}$",
+          "title": "Member Rxcui",
+          "type": "string"
+        },
+        "member_term_type": {
+          "maxLength": 20,
+          "minLength": 1,
+          "title": "Member Term Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "class_id",
+        "class_name",
+        "class_type",
+        "relationship_source",
+        "member_rxcui",
+        "member_term_type"
+      ],
+      "title": "ClassMembership",
+      "type": "object"
+    },
+    "ClassesResult": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": ["RESOLVED", "REVIEW_REQUIRED", "NOT_FOUND", "UNVERIFIED"],
+          "title": "Status",
+          "type": "string"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/ClassMembership"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/$defs/Source"
+          },
+          "title": "Sources",
+          "type": "array"
+        }
+      },
+      "required": ["status", "reason"],
+      "title": "ClassesResult",
+      "type": "object"
+    },
+    "DrugConcept": {
+      "additionalProperties": false,
+      "properties": {
+        "rxcui": {
+          "pattern": "^[1-9][0-9]{0,11}$",
+          "title": "Rxcui",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "term_type": {
+          "maxLength": 20,
+          "minLength": 1,
+          "title": "Term Type",
+          "type": "string"
+        }
+      },
+      "required": ["rxcui", "name", "term_type"],
+      "title": "DrugConcept",
+      "type": "object"
+    },
+    "DrugQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "drug_text": {
+          "maxLength": 160,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9 \u00b5\u03bc%().,+/ -]*$",
+          "title": "Drug Text",
+          "type": "string"
+        }
+      },
+      "required": ["drug_text"],
+      "title": "DrugQuery",
+      "type": "object"
+    },
+    "LabelDocument": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "set_id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Set Id",
+          "type": "string"
+        },
+        "version": {
+          "pattern": "^[0-9]+$",
+          "title": "Version",
+          "type": "string"
+        },
+        "effective_time": {
+          "pattern": "^[0-9]{8}$",
+          "title": "Effective Time",
+          "type": "string"
+        },
+        "sections": {
+          "additionalProperties": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "title": "Sections",
+          "type": "object"
+        },
+        "missing_sections": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Missing Sections",
+          "type": "array"
+        }
+      },
+      "required": ["id", "set_id", "version", "effective_time", "sections"],
+      "title": "LabelDocument",
+      "type": "object"
+    },
+    "LabelQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "rxcui": {
+          "pattern": "^[1-9][0-9]{0,11}$",
+          "title": "Rxcui",
+          "type": "string"
+        },
+        "sections": {
+          "items": {
+            "enum": [
+              "boxed_warning",
+              "contraindications",
+              "dosage_and_administration",
+              "warnings_and_cautions",
+              "warnings",
+              "drug_interactions",
+              "indications_and_usage"
+            ],
+            "type": "string"
+          },
+          "maxItems": 7,
+          "minItems": 1,
+          "title": "Sections",
+          "type": "array"
+        }
+      },
+      "required": ["rxcui", "sections"],
+      "title": "LabelQuery",
+      "type": "object"
+    },
+    "LabelsResult": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": ["RESOLVED", "REVIEW_REQUIRED", "NOT_FOUND", "UNVERIFIED"],
+          "title": "Status",
+          "type": "string"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/LabelDocument"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "total": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Total"
+        },
+        "truncated": {
+          "default": false,
+          "title": "Truncated",
+          "type": "boolean"
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/$defs/Source"
+          },
+          "title": "Sources",
+          "type": "array"
+        }
+      },
+      "required": ["status", "reason"],
+      "title": "LabelsResult",
+      "type": "object"
+    },
+    "NormalizationResult": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": ["RESOLVED", "REVIEW_REQUIRED", "NOT_FOUND", "UNVERIFIED"],
+          "title": "Status",
+          "type": "string"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "rxcui": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rxcui"
+        },
+        "candidates": {
+          "items": {
+            "$ref": "#/$defs/DrugConcept"
+          },
+          "title": "Candidates",
+          "type": "array"
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/$defs/Source"
+          },
+          "title": "Sources",
+          "type": "array"
+        }
+      },
+      "required": ["status", "reason"],
+      "title": "NormalizationResult",
+      "type": "object"
+    },
+    "RxCuiQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "rxcui": {
+          "pattern": "^[1-9][0-9]{0,11}$",
+          "title": "Rxcui",
+          "type": "string"
+        }
+      },
+      "required": ["rxcui"],
+      "title": "RxCuiQuery",
+      "type": "object"
+    },
+    "Source": {
+      "additionalProperties": false,
+      "properties": {
+        "provider": {
+          "enum": ["RXNORM", "RXCLASS", "OPENFDA"],
+          "title": "Provider",
+          "type": "string"
+        },
+        "url": {
+          "title": "Url",
+          "type": "string"
+        },
+        "retrieved_at": {
+          "format": "date-time",
+          "title": "Retrieved At",
+          "type": "string"
+        },
+        "response_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Response Sha256",
+          "type": "string"
+        }
+      },
+      "required": ["provider", "url", "retrieved_at", "response_sha256"],
+      "title": "Source",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "normalize_request": {
+      "$ref": "#/$defs/DrugQuery"
+    },
+    "normalize_response": {
+      "$ref": "#/$defs/NormalizationResult"
+    },
+    "classes_request": {
+      "$ref": "#/$defs/RxCuiQuery"
+    },
+    "classes_response": {
+      "$ref": "#/$defs/ClassesResult"
+    },
+    "labels_request": {
+      "$ref": "#/$defs/LabelQuery"
+    },
+    "labels_response": {
+      "$ref": "#/$defs/LabelsResult"
+    }
+  },
+  "required": [
+    "normalize_request",
+    "normalize_response",
+    "classes_request",
+    "classes_response",
+    "labels_request",
+    "labels_response"
+  ],
+  "title": "CksContracts",
+  "type": "object"
+}

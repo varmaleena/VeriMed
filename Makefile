@@ -26,7 +26,7 @@ lint:
 	uv run ruff check .
 	uv run ruff format --check .
 	uv run mypy spikes
-	uv run --all-packages mypy services/api
+	uv run --all-packages mypy services/api services/cks
 	pnpm exec prettier --check .
 
 test:
