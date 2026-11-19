@@ -1,8 +1,8 @@
 import { PatientTable } from "./patient-table";
-import { readPatients } from "../../../lib/patients";
+import { readPatientSnapshot } from "../../../lib/patients";
 
 export default async function Patients() {
-  const result = await readPatients();
+  const { result, retrievedAt } = await readPatientSnapshot();
   if ("unavailable" in result)
     return (
       <>
@@ -31,10 +31,10 @@ export default async function Patients() {
       <div className="page-heading">
         <div>
           <h1>Patients</h1>
-          <p className="muted">Live synthetic FHIR records</p>
+          <p className="muted">Patient directory for this hospital</p>
         </div>
       </div>
-      <p className="caption">
+      <p className="caption patient-source-note">
         {result.source} · Testing window ends{" "}
         {new Intl.DateTimeFormat("en-IN", {
           dateStyle: "medium",
@@ -43,7 +43,7 @@ export default async function Patients() {
         }).format(new Date(result.expires_at))}{" "}
         IST
       </p>
-      <PatientTable initialPage={result} />
+      <PatientTable initialPage={result} initialRetrievedAt={retrievedAt} />
     </>
   );
 }

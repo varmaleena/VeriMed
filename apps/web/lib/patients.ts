@@ -6,3 +6,8 @@ export function readPatients(cursor?: string) {
   if (cursor) params.set("cursor", cursor);
   return readCell<components["schemas"]["PatientPage"]>("patients", params);
 }
+
+export async function readPatientSnapshot(cursor?: string) {
+  const result = await readPatients(cursor);
+  return { result, retrievedAt: new Date().toISOString() };
+}

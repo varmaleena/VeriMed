@@ -1,8 +1,14 @@
 "use server";
 
-import { readPatients } from "../../../lib/patients";
+import { readPatientSnapshot } from "../../../lib/patients";
+import { requireSession } from "../../../lib/session";
 
 export async function loadPatientPage(cursor?: string) {
-  if (cursor && cursor.length > 8192) throw new Error("Invalid patient page.");
-  return readPatients(cursor);
+  await requireSession();
+  if (
+    cursor !== undefined &&
+    (typeof cursor !== "string" || cursor.length > 8192)
+  )
+    throw new Error("Invalid patient page.");
+  return readPatientSnapshot(cursor);
 }
