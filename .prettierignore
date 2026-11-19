@@ -11,3 +11,4 @@ pnpm-lock.yaml
 docs/spikes/s5-us-east-1.json
 
 .phase1-cks/
+.phase1-db/

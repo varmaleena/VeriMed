@@ -16,3 +16,4 @@ dist/
 .env.*
 !.env.example
 .phase1-cks/
+.phase1-db/

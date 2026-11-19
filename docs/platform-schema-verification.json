@@ -1,0 +1,18 @@
+{
+  "checked_at": "2026-11-19T12:48:25.016137+00:00",
+  "revision": "003_platform",
+  "clinical_table_count": 26,
+  "tenant_composite_foreign_keys": 31,
+  "forced_rls_all_tables": true,
+  "runtime_superuser_or_bypassrls": false,
+  "rollback_only_checks": [
+    "read_isolation",
+    "write_isolation",
+    "cross_tenant_fk",
+    "claim_span",
+    "note_immutable",
+    "note_hash"
+  ],
+  "diagnostic_rows_committed": false,
+  "status": "PASSED"
+}

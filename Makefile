@@ -9,9 +9,11 @@ bootstrap:
 	uv run pre-commit install
 	docker compose up -d --build --wait
 
-dev test-int:
-	@echo "not implemented until Phase 1"
-	@exit 1
+dev:
+	pnpm --filter @verimed/web dev --hostname 127.0.0.1
+
+test-int:
+	uv run --all-packages python services/api/test_integration.py --env $(ENV) --cell $(CELL)
 
 eval-smoke:
 	@echo "not implemented until Phase 3"

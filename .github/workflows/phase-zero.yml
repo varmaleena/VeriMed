@@ -24,6 +24,9 @@ jobs:
       - run: pnpm --filter @verimed/cdk build
       - run: pnpm --filter @verimed/web typecheck
       - run: pnpm --filter @verimed/web build
+      - run: uv run --all-packages python services/api/export_platform_schema.py
+      - run: git diff --exit-code -- services/api/migrations/003_platform.sql
+      - run: uv run --all-packages alembic -c services/api/alembic.ini upgrade head --sql
       - run: uv run --all-packages python services/api/export_openapi.py
       - run: uv run --all-packages python services/api/export_ledger_schema.py
       - run: uv run --all-packages python services/cks/export_schema.py
@@ -70,6 +73,35 @@ jobs:
       - run: uv run --all-packages python services/cks/cache_integration.py --allow-local --output docs/cks-cache-verification.json
         env:
           VALKEY_URL: valkey://127.0.0.1:6379/0
+  platform-schema-integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:0.8.3-pg17
+        env:
+          POSTGRES_USER: verimed
+          POSTGRES_DB: verimed
+          # Isolated ephemeral CI database, no PHI or persistent credentials.
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U verimed -d verimed"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql+asyncpg://verimed@127.0.0.1:5432/verimed
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          version: "0.13.8"
+          python-version: "3.12"
+      - run: uv sync --locked --all-packages
+      - run: uv run --all-packages alembic -c services/api/alembic.ini upgrade head
+      - run: uv run --all-packages python services/api/tests/sql_schema_integration.py
+      - run: uv run --all-packages alembic -c services/api/alembic.ini upgrade head
   security:
     runs-on: ubuntu-latest
     steps:

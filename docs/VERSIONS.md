@@ -33,3 +33,8 @@ The us-east-1 ElastiCache engine catalog was queried on November 19, 2026 and re
 Valkey 7.2, 8.0, 8.1, 8.2, 9.0 and 9.1. CKS_CACHE_MAJOR_VERSION is explicit deployment
 configuration; catalog listing does not prove serverless-cache creation in a new hub account.
 The CKS bridge reuses the previously verified boto3 1.44.5 pin.
+
+Phase 1 schema tooling pins SQLAlchemy 2.1.9 (asyncio extra), asyncpg 0.32.0 and Alembic 1.20.1.
+These stable release versions and Python requirements were verified through PyPI on November 19, 2026.
+The asyncio extra locks greenlet 3.5.6 transitively. Alembic path_separator=os handles Windows workspace
+paths containing spaces.
