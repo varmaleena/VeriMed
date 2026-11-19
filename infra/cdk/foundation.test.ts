@@ -1,6 +1,9 @@
 import { test } from "node:test";
 import { ok } from "node:assert/strict";
-import { App } from "aws-cdk-lib";
+import { App, Stack, Validations } from "aws-cdk-lib";
+import { AwsSolutionsChecks } from "cdk-nag";
+import { Function as LambdaFunction } from "aws-cdk-lib/aws-lambda";
+import { CksIngress } from "./cks-ingress";
 import { Match, Template } from "aws-cdk-lib/assertions";
 import { CellFoundation, HubFoundation } from "./foundation";
 import { CellIdentity } from "./cell-identity";
@@ -300,4 +303,91 @@ test("The explicit dev quota fallback does not reserve Lambda concurrency", () =
     Handler: "app.ledger_worker.handler",
     ReservedConcurrentExecutions: Match.absent(),
   });
+});
+
+test("CKS ingress is private, IAM-only, role/endpoint-scoped and does not log payloads", () => {
+  const app = new App();
+  const stack = new Stack(app, "CksBoundary", {
+    env: { account: "111111111111", region: "us-east-1" },
+  });
+  // The ingress references an existing runtime; its packaging/deployment is deliberately separate.
+  const handler = LambdaFunction.fromFunctionArn(
+    stack,
+    "Runtime",
+    "arn:aws:lambda:us-east-1:111111111111:function:cks-runtime",
+  );
+  new CksIngress(stack, "Ingress", {
+    handler,
+    stage: "v1",
+    callers: [
+      {
+        roleArn: "arn:aws:iam::222222222222:role/reference-client",
+        tenantId: "97d7aa7f-d4a0-4af0-ae84-131142081e90",
+        endpointIds: ["vpce-0123456789abcdef0"],
+        operations: ["normalize", "classes", "labels"],
+      },
+    ],
+  });
+  Validations.of(app).addPlugins(new AwsSolutionsChecks(app));
+  const template = Template.fromStack(stack);
+  template.resourceCountIs("AWS::EC2::NatGateway", 0);
+  template.resourceCountIs("AWS::ApiGateway::Method", 3);
+  template.resourceCountIs("AWS::Lambda::Permission", 3);
+  template.resourceCountIs("AWS::Lambda::Function", 0);
+  template.hasResourceProperties("AWS::ApiGateway::RestApi", {
+    EndpointConfiguration: { Types: ["PRIVATE"] },
+    Policy: {
+      Statement: Match.arrayWith([
+        Match.objectLike({
+          Effect: "Deny",
+          Condition: {
+            StringNotEquals: { "aws:SourceVpce": ["vpce-0123456789abcdef0"] },
+          },
+        }),
+        Match.objectLike({
+          Effect: "Deny",
+          Condition: {
+            ArnNotEquals: {
+              "aws:PrincipalArn": [
+                "arn:aws:iam::222222222222:role/reference-client",
+              ],
+            },
+          },
+        }),
+      ]),
+    },
+  });
+  for (const method of Object.values(
+    template.findResources("AWS::ApiGateway::Method"),
+  )) {
+    ok(method.Properties.AuthorizationType === "AWS_IAM");
+    ok(method.Properties.HttpMethod === "POST");
+  }
+  template.hasResourceProperties("AWS::ApiGateway::Stage", {
+    CacheClusterEnabled: false,
+    TracingEnabled: true,
+    MethodSettings: Match.arrayWith([
+      Match.objectLike({ DataTraceEnabled: false }),
+    ]),
+  });
+  template.hasResourceProperties("AWS::Logs::LogGroup", {
+    KmsKeyId: Match.anyValue(),
+  });
+  app.synth();
+});
+
+test("CKS ingress rejects empty caller bindings", () => {
+  const stack = new Stack(new App(), "InvalidCks");
+  const handler = LambdaFunction.fromFunctionArn(
+    stack,
+    "Runtime",
+    "arn:aws:lambda:us-east-1:111111111111:function:cks-runtime",
+  );
+  let rejected = false;
+  try {
+    new CksIngress(stack, "Ingress", { handler, stage: "v1", callers: [] });
+  } catch {
+    rejected = true;
+  }
+  ok(rejected);
 });

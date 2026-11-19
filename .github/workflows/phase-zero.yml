@@ -25,7 +25,7 @@ jobs:
       - run: uv run --all-packages python services/api/export_ledger_schema.py
       - run: uv run --all-packages python services/cks/export_schema.py
       - run: pnpm --filter @verimed/api-client generate
-      - run: git diff --exit-code -- packages/api-client/openapi.json packages/api-client/schema.d.ts packages/api-client/ledger-anchor-job.schema.json packages/api-client/cks.schema.json
+      - run: git diff --exit-code -- packages/api-client/openapi.json packages/api-client/schema.d.ts packages/api-client/ledger-anchor-job.schema.json packages/api-client/cks.schema.json packages/api-client/cks.openapi.json packages/api-client/cks-api.d.ts
       - run: make test
       - run: make synth
       - run: pnpm --filter @verimed/cdk exec cdk synth CellLedger -c cellLedger=true --output cdk.out/ci-ledger

@@ -1,0 +1,693 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "ChartVigil private reference API",
+    "description": "HIPAA-aligned design, synthetic data only. Drug-only service requests.",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/normalize": {
+      "post": {
+        "summary": "Normalize",
+        "operationId": "normalize_normalize_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DrugQuery"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NormalizationResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Redacted problem response; no clinical verification implied",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Redacted problem response; no clinical verification implied",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Redacted problem response; no clinical verification implied",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Redacted problem response; no clinical verification implied",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Redacted problem response; no clinical verification implied",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Redacted problem response; no clinical verification implied",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sigv4": []
+          }
+        ]
+      }
+    },
+    "/classes": {
+      "post": {
+        "summary": "Classes",
+        "operationId": "classes_classes_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RxCuiQuery"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClassesResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Redacted problem response; no clinical verification implied",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Redacted problem response; no clinical verification implied",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Redacted problem response; no clinical verification implied",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Redacted problem response; no clinical verification implied",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Redacted problem response; no clinical verification implied",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Redacted problem response; no clinical verification implied",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sigv4": []
+          }
+        ]
+      }
+    },
+    "/labels": {
+      "post": {
+        "summary": "Labels",
+        "operationId": "labels_labels_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LabelQuery"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LabelsResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Redacted problem response; no clinical verification implied",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Redacted problem response; no clinical verification implied",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Redacted problem response; no clinical verification implied",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Redacted problem response; no clinical verification implied",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Redacted problem response; no clinical verification implied",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Redacted problem response; no clinical verification implied",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sigv4": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ClassMembership": {
+        "properties": {
+          "class_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Class Id"
+          },
+          "class_name": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Class Name"
+          },
+          "class_type": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Class Type"
+          },
+          "relationship": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relationship"
+          },
+          "relationship_source": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Relationship Source"
+          },
+          "member_rxcui": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,11}$",
+            "title": "Member Rxcui"
+          },
+          "member_term_type": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 1,
+            "title": "Member Term Type"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "class_id",
+          "class_name",
+          "class_type",
+          "relationship_source",
+          "member_rxcui",
+          "member_term_type"
+        ],
+        "title": "ClassMembership"
+      },
+      "ClassesResult": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["RESOLVED", "REVIEW_REQUIRED", "NOT_FOUND", "UNVERIFIED"],
+            "title": "Status"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ClassMembership"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            },
+            "type": "array",
+            "title": "Sources"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": ["status", "reason"],
+        "title": "ClassesResult"
+      },
+      "DrugConcept": {
+        "properties": {
+          "rxcui": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,11}$",
+            "title": "Rxcui"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "term_type": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 1,
+            "title": "Term Type"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": ["rxcui", "name", "term_type"],
+        "title": "DrugConcept"
+      },
+      "DrugQuery": {
+        "properties": {
+          "drug_text": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9 \u00b5\u03bc%().,+/ -]*$",
+            "title": "Drug Text"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": ["drug_text"],
+        "title": "DrugQuery"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "LabelDocument": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Id"
+          },
+          "set_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Set Id"
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "title": "Version"
+          },
+          "effective_time": {
+            "type": "string",
+            "pattern": "^[0-9]{8}$",
+            "title": "Effective Time"
+          },
+          "sections": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "type": "object",
+            "title": "Sections"
+          },
+          "missing_sections": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Sections"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": ["id", "set_id", "version", "effective_time", "sections"],
+        "title": "LabelDocument"
+      },
+      "LabelQuery": {
+        "properties": {
+          "rxcui": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,11}$",
+            "title": "Rxcui"
+          },
+          "sections": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "boxed_warning",
+                "contraindications",
+                "dosage_and_administration",
+                "warnings_and_cautions",
+                "warnings",
+                "drug_interactions",
+                "indications_and_usage"
+              ]
+            },
+            "type": "array",
+            "maxItems": 7,
+            "minItems": 1,
+            "title": "Sections"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": ["rxcui", "sections"],
+        "title": "LabelQuery"
+      },
+      "LabelsResult": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["RESOLVED", "REVIEW_REQUIRED", "NOT_FOUND", "UNVERIFIED"],
+            "title": "Status"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/LabelDocument"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total"
+          },
+          "truncated": {
+            "type": "boolean",
+            "title": "Truncated",
+            "default": false
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            },
+            "type": "array",
+            "title": "Sources"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": ["status", "reason"],
+        "title": "LabelsResult"
+      },
+      "NormalizationResult": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["RESOLVED", "REVIEW_REQUIRED", "NOT_FOUND", "UNVERIFIED"],
+            "title": "Status"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "rxcui": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rxcui"
+          },
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/DrugConcept"
+            },
+            "type": "array",
+            "title": "Candidates"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            },
+            "type": "array",
+            "title": "Sources"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": ["status", "reason"],
+        "title": "NormalizationResult"
+      },
+      "RxCuiQuery": {
+        "properties": {
+          "rxcui": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,11}$",
+            "title": "Rxcui"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": ["rxcui"],
+        "title": "RxCuiQuery"
+      },
+      "Source": {
+        "properties": {
+          "provider": {
+            "type": "string",
+            "enum": ["RXNORM", "RXCLASS", "OPENFDA"],
+            "title": "Provider"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "retrieved_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Retrieved At"
+          },
+          "response_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Response Sha256"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": ["provider", "url", "retrieved_at", "response_sha256"],
+        "title": "Source"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": ["loc", "msg", "type"],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "sigv4": {
+        "type": "apiKey",
+        "name": "Authorization",
+        "in": "header",
+        "description": "AWS SigV4 execute-api. API Gateway AWS_IAM verifies the signature.",
+        "x-amazon-apigateway-authtype": "awsSigv4"
+      }
+    }
+  }
+}

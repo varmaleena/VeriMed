@@ -32,3 +32,12 @@ Docker is unavailable and wsl --list --quiet reports WSL is not installed. Neede
 server (Compose/WSL) or an isolated authorized TLS development cache endpoint reachable by this host.
 The GitHub workflow includes a real Valkey service integration check, but no remote/hosted run is configured.
 Do not treat cache integration, hub caching deployment, or Phase 1 PrivateLink acceptance as passed.
+
+## CKS private service deployment — 2026-11-19
+
+The private API boundary, authorization tests, OpenAPI and CDK ingress construct are implemented locally.
+Deployment still requires the separate hub account/profile, Linux runtime bundle, cell interface-endpoint IDs
+and IAM role bindings, and restricted gateway-only Lambda invocation.
+The final hub runtime must reach private Valkey/reference storage and public providers without NAT gateways;
+that integrated egress/cache topology has not been built or validated. The reusable ingress construct is not
+a deployed HubCKS stack. Cross-account SigV4/PrivateLink tests and hosted CI remain unverified.

@@ -70,3 +70,47 @@ Cache-slice validation: 101 unit tests passed (52 API, 49 CKS), including 28 cac
 Ruff and strict mypy passed across 34 source files. TLS constructor tests were rerun after the
 final constructor typing fix. Three pre-existing framework deprecation warnings remain.
 Real-Valkey integration and hosted CI remain unverified for the reasons above.
+
+## Private service-boundary slice — November 19
+
+The FastAPI service exposes POST /normalize, /classes, and /labels using strict request/response types.
+No patient IDs, encounters, notes, or caller-selected tenant IDs are accepted.
+It preserves UNVERIFIED/REVIEW_REQUIRED results; an HTTP 200 lookup is not clinical approval.
+Malformed inputs return redacted 422 problem responses; provider exceptions and deadline expiry return
+503 problem responses with trace IDs. Bodies are limited to 16 KiB and requests to 20 seconds.
+URL query parameters are rejected, browser schema/docs routes are disabled, and responses use no-store.
+
+Authentication is performed by an AWS_IAM private REST API. The app checks only trusted Lambda proxy
+requestContext metadata, including API, stage, hub account, calling role/account, and per-role endpoint.
+Role bindings determine the tenant and allowed operations. Headers cannot establish identity.
+This app must not be deployed as an independently public ASGI service. Its Lambda adapter requires
+gateway-only invocation permissions: anyone with direct Lambda invoke rights could forge gateway metadata.
+
+CksIngress in infra/cdk/cks-ingress.ts is an integration construct, not a deployed HubCKS stack.
+It accepts an existing Lambda-compatible runtime and explicit CksCaller bindings, requires private API
+ingress and AWS_IAM methods, and restricts resource-policy access to approved roles/endpoints.
+It emits runtimeEnvironment settings for the runtime:
+CKS_API_ID, CKS_HUB_ACCOUNT_ID, CKS_STAGE, and CKS_CALLERS_JSON.
+The latter maps role_arn, tenant_id, endpoint_ids, and operations; it must come from deployment configuration.
+Do not invent IDs or account bindings. Cell invoke policies and endpoint policies must be deployed alongside it.
+
+Tests cover unsigned requests, forged headers, wrong roles/accounts/endpoints, operation denial,
+tenant override rejection, payload bounds, redacted errors and timeouts, and review-state preservation.
+The OpenAPI and TypeScript contracts are packages/api-client/cks.openapi.json and cks-api.d.ts.
+Run:
+
+    .venv/Scripts/python.exe -m pytest services/cks/tests/test_service.py -q
+    pnpm --filter @verimed/cdk test
+
+Remaining gates: separate hub account/profile; actual runtime packaging/deployment; private endpoint
+and cell IAM policies; a no-NAT plan connecting the runtime to both private Valkey and public reference
+providers; mirrored reference storage; distributed provider quotas; real cross-account signed-call tests.
+The ingress construct alone neither deploys the runtime nor solves private-cache/public-provider connectivity.
+The existing live reference report does not prove service authentication or PrivateLink connectivity.
+No resources were deployed or AWS charges added by this slice.
+
+Service-boundary validation: 121 Python tests passed (52 API, 69 CKS), including 20 service
+authorization/error-boundary tests. All 12 CDK tests passed; the CKS ingress synthesis passed cdk-nag
+with the explicit acknowledgements in source. Strict mypy passed across 36 source files.
+Ruff, TypeScript compilation, targeted ESLint and generated-contract formatting passed.
+These are local unit/synthesis results; hosted CI and real signed cross-account calls remain unverified.

@@ -25,3 +25,6 @@ No additional package version was introduced for this slice.
 CKS caching pins valkey (valkey-py) 6.2.0, verified as the stable PyPI release on
 November 19, 2026, with Python >=3.11 support. The installed client source was checked
 for async APIs and TLS defaults; hostname verification is explicitly enabled by our adapter.
+
+The CKS service boundary reuses FastAPI 0.163.2, Mangum 0.22.0 and OpenTelemetry SDK 1.45.2,
+already verified for the cell API. No additional version was introduced for private ingress.
