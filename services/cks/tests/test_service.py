@@ -241,7 +241,7 @@ def test_request_timeout_returns_unavailable(monkeypatch: pytest.MonkeyPatch) ->
     class SlowReference(Reference):
         async def normalize_drug(self, drug_text: str) -> NormalizationResult:
             await asyncio.sleep(0.05)
-            return NormalizationResult(status="RESOLVED", reason="UNIT_LATE")
+            return NormalizationResult(status="UNVERIFIED", reason="UNIT_LATE")
 
     monkeypatch.setattr(service, "REQUEST_TIMEOUT", 0.01)
     app = create_app(settings())

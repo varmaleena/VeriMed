@@ -114,3 +114,43 @@ authorization/error-boundary tests. All 12 CDK tests passed; the CKS ingress syn
 with the explicit acknowledgements in source. Strict mypy passed across 36 source files.
 Ruff, TypeScript compilation, targeted ESLint and generated-contract formatting passed.
 These are local unit/synthesis results; hosted CI and real signed cross-account calls remain unverified.
+
+## No-NAT HubCKS runtime — November 19
+
+HubCKS now composes the private IAM ingress, an isolated API Lambda, authenticated Valkey serverless,
+and an IAM-only non-VPC reference worker. The private API has no direct internet path. It invokes the
+worker through the Lambda interface endpoint; only the worker performs fixed-host NLM/FDA requests.
+The worker cannot read cache secrets. The API reads one generated secret through a scoped Secrets Manager
+endpoint and uses TLS with certificate/hostname verification. No password is stored in Lambda environment
+variables. Both API and worker have bounded requests, redacted failures and W3C-linked OTel spans.
+A CDK helper Lambda also removes the VPC default security group's default rules.
+
+Synthesis requires VERIMED_CKS_BUNDLE, VERIMED_HUB_ACCOUNT, VERIMED_CELL_ACCOUNT (different accounts),
+VERIMED_CKS_CALLERS_FILE and CKS_CACHE_MAJOR_VERSION. The callers file is an explicit JSON array of
+roleArn, tenantId, endpointIds and operations. Obtain actual IDs from cell deployment; do not use CI bindings.
+
+Build the Linux runtime:
+
+    ./scripts/Build-CksBundle.ps1
+
+The script prints a new ignored bundle directory containing locked, hash-verified Linux dependencies,
+application modules and build-manifest.json. Set VERIMED_CKS_BUNDLE to that bundle, not services/cks.
+Only then synthesize HubCKS with the configured separate-account caller bindings:
+
+    pnpm --filter @verimed/cdk exec cdk synth HubCKS -c hubCks=true
+
+The regional engine catalog returned Valkey 7.2 through 9.1 on November 19. Engine major is explicit
+configuration; successful serverless creation is still a live deployment check. The Linux native extension
+was verified as CPython 3.12 x86_64 Linux, but local Linux execution is unavailable without Docker/WSL.
+
+This supersedes the unresolved private-cache/public-provider connectivity design noted above.
+Deployment is still blocked by the missing hub account/profile and actual cell endpoint/role configuration.
+Reference Postgres mirroring, a distributed provider quota limiter, cache credential rotation, redundant
+endpoint placement, alert destinations, and real cross-account tests remain unfinished.
+The app now rejects RESOLVED responses without supporting evidence, including contradictory selected
+concepts, unspecified class relationships and incomplete label coverage.
+
+No-NAT runtime validation: 145 Python tests passed; all 13 CDK tests passed, including HubCKS
+synthesis with cdk-nag. Ruff/strict mypy passed across 41 source files, and TypeScript/ESLint passed.
+A fresh hash-verified Linux bundle was built successfully. No hub deployment or Linux runtime execution
+was claimed. The optional worker request contract is cks-reference-request.schema.json.

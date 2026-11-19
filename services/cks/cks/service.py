@@ -8,7 +8,7 @@ import re
 import time
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
-from typing import Annotated, Literal, Protocol
+from typing import Annotated, Literal
 from uuid import UUID, uuid4
 
 import httpx
@@ -17,14 +17,15 @@ from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from mangum import Mangum
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import ConsoleSpanExporter, SimpleSpanProcessor
+from opentelemetry import trace
 from pydantic import Field, model_validator
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.responses import Response
 
+from .bridge import RemoteKnowledgeClient
 from .cache import CachedKnowledgeClient, ValkeyStore
-from .client import KnowledgeClient
+from .client import KnowledgeClient, ReferenceClient
+from .runtime import remote_client, secret_store
 from .schemas import (
     ClassesResult,
     DrugQuery,
@@ -34,6 +35,7 @@ from .schemas import (
     RxCuiQuery,
     StrictModel,
 )
+from .telemetry import configure
 
 Operation = Literal["normalize", "classes", "labels"]
 ROLE = re.compile(
@@ -44,9 +46,8 @@ SESSION = re.compile(
 )
 REQUEST_TIMEOUT = 20.0
 logger = structlog.get_logger()
-provider = TracerProvider()
-provider.add_span_processor(SimpleSpanProcessor(ConsoleSpanExporter()))
-tracer = provider.get_tracer("verimed.cks.service")
+configure()
+tracer = trace.get_tracer("verimed.cks.service")
 
 
 class Caller(StrictModel):
@@ -78,10 +79,7 @@ class Settings(StrictModel):
         )
 
 
-class Knowledge(Protocol):
-    async def normalize_drug(self, drug_text: str) -> NormalizationResult: ...
-    async def drug_classes(self, rxcui: str) -> ClassesResult: ...
-    async def label_sections(self, rxcui: str, sections: list[str]) -> LabelsResult: ...
+Knowledge = ReferenceClient
 
 
 def authorize(request: Request, operation: Operation) -> Caller:
@@ -152,9 +150,22 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             timeout=10, follow_redirects=False, limits=httpx.Limits(max_connections=8)
         ) as http:
             store: ValkeyStore | None = None
+            remote: RemoteKnowledgeClient | None = None
             try:
-                upstream = KnowledgeClient(http)
-                if os.environ.get("VALKEY_URL"):
+                upstream: ReferenceClient
+                if os.environ.get("CKS_REFERENCE_WORKER_ARN"):
+                    remote = remote_client(os.environ["CKS_REFERENCE_WORKER_ARN"])
+                    upstream = remote
+                elif os.environ.get("CKS_PRIVATE_MODE") == "true":
+                    raise ValueError("Private CKS requires a reference worker")
+                else:
+                    upstream = KnowledgeClient(http)
+                if os.environ.get("CKS_CACHE_SECRET_ARN"):
+                    store = await secret_store(
+                        os.environ["CKS_CACHE_SECRET_ARN"], os.environ["CKS_CACHE_HOST"]
+                    )
+                    app.state.knowledge = CachedKnowledgeClient(upstream, store)
+                elif os.environ.get("VALKEY_URL"):
                     store = ValkeyStore(os.environ["VALKEY_URL"])
                     app.state.knowledge = CachedKnowledgeClient(upstream, store)
                 else:
@@ -163,6 +174,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             finally:
                 if store is not None:
                     await store.aclose()
+                if remote is not None:
+                    await remote.aclose()
 
     app = FastAPI(
         title="ChartVigil private reference API",
@@ -219,6 +232,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             response.headers["X-Request-ID"] = request.state.trace_id
             logger.info(
                 "cks_request",
+                trace_id=request.state.trace_id,
                 status=response.status_code,
                 duration_ms=round((time.monotonic() - started) * 1000),
                 _aws={

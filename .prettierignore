@@ -9,3 +9,5 @@ pnpm-lock.yaml
 **/cdk.context.json
 **/.venv*/
 docs/spikes/s5-us-east-1.json
+
+.phase1-cks/

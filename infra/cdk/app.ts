@@ -4,6 +4,9 @@ import { CellIdentity } from "./cell-identity";
 import { CellWorklist } from "./cell-worklist";
 import { CellFhirDemo } from "./cell-fhir-demo";
 import { CellLedger } from "./cell-ledger";
+import { HubCKS } from "./hub-cks";
+import { CksCaller } from "./cks-ingress";
+import { readFileSync } from "node:fs";
 import { AgentCoreSpike } from "./agentcore-spike";
 import { FhirSpike } from "./fhir-spike";
 import { HealthScribeSpike } from "./healthscribe-spike";
@@ -128,5 +131,25 @@ if (app.node.tryGetContext("healthscribeSpike") === "true") {
 if (app.node.tryGetContext("liteLlmSpike") === "true") {
   new LiteLlmSpike(app, "LiteLlmSpike", {
     env: { region, account: process.env.VERIMED_CELL_ACCOUNT },
+  });
+}
+
+if (app.node.tryGetContext("hubCks") === "true") {
+  const bundle = process.env.VERIMED_CKS_BUNDLE;
+  const hub = process.env.VERIMED_HUB_ACCOUNT;
+  const cell = process.env.VERIMED_CELL_ACCOUNT;
+  const config = process.env.VERIMED_CKS_CALLERS_FILE;
+  const cacheMajorVersion = process.env.CKS_CACHE_MAJOR_VERSION;
+  if (!bundle || !hub || !cell || hub === cell || !config || !cacheMajorVersion)
+    throw new Error(
+      "Separate hub/cell accounts, CKS bundle and explicit callers file are required",
+    );
+  const callers = JSON.parse(readFileSync(config, "utf8")) as CksCaller[];
+  new HubCKS(app, "HubCKS", {
+    bundle,
+    stage,
+    cacheMajorVersion,
+    callers,
+    env: { region, account: hub },
   });
 }

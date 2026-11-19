@@ -14,7 +14,7 @@ from pydantic import AwareDatetime, Field, ValidationError
 from valkey.asyncio import Valkey
 from valkey.exceptions import ValkeyError
 
-from .client import KnowledgeClient, logger
+from .client import ReferenceClient, logger
 from .schemas import (
     ClassesResult,
     DrugQuery,
@@ -101,7 +101,7 @@ def canonical(value: object) -> bytes:
 
 
 class CachedKnowledgeClient:
-    def __init__(self, upstream: KnowledgeClient, store: CacheStore) -> None:
+    def __init__(self, upstream: ReferenceClient, store: CacheStore) -> None:
         self.upstream = upstream
         self.store = store
 

@@ -5,7 +5,7 @@ import hashlib
 import json
 import time
 from datetime import UTC, datetime
-from typing import Any, Literal, TypeVar
+from typing import Any, Literal, Protocol, TypeVar
 
 import httpx
 import structlog
@@ -30,6 +30,12 @@ logger = structlog.get_logger()
 Result = TypeVar("Result", NormalizationResult, ClassesResult, LabelsResult)
 RXNAV = "https://rxnav.nlm.nih.gov/REST/"
 FDA = "https://api.fda.gov/drug/label.json"
+
+
+class ReferenceClient(Protocol):
+    async def normalize_drug(self, drug_text: str) -> NormalizationResult: ...
+    async def drug_classes(self, rxcui: str) -> ClassesResult: ...
+    async def label_sections(self, rxcui: str, sections: list[str]) -> LabelsResult: ...
 
 
 class UpstreamUnavailable(RuntimeError):
@@ -112,6 +118,9 @@ class KnowledgeClient:
     def _finish(operation: str, result: Result) -> Result:
         logger.info(
             "cks_lookup",
+            trace_id=format(
+                trace.get_current_span().get_span_context().trace_id, "032x"
+            ),
             operation=operation,
             outcome=result.status,
             _aws={

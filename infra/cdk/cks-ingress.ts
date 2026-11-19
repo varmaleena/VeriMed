@@ -1,5 +1,12 @@
 import { Construct } from "constructs";
-import { Duration, RemovalPolicy, Stack, Tags, Validations } from "aws-cdk-lib";
+import {
+  ArnFormat,
+  Duration,
+  RemovalPolicy,
+  Stack,
+  Tags,
+  Validations,
+} from "aws-cdk-lib";
 import {
   AccessLogFormat,
   AuthorizationType,
@@ -84,6 +91,7 @@ export class CksIngress extends Construct {
               service: "logs",
               resource: "log-group",
               resourceName: "*",
+              arnFormat: ArnFormat.COLON_RESOURCE_NAME,
             }),
           },
         },

@@ -28,3 +28,8 @@ for async APIs and TLS defaults; hostname verification is explicitly enabled by 
 
 The CKS service boundary reuses FastAPI 0.163.2, Mangum 0.22.0 and OpenTelemetry SDK 1.45.2,
 already verified for the cell API. No additional version was introduced for private ingress.
+
+The us-east-1 ElastiCache engine catalog was queried on November 19, 2026 and returned
+Valkey 7.2, 8.0, 8.1, 8.2, 9.0 and 9.1. CKS_CACHE_MAJOR_VERSION is explicit deployment
+configuration; catalog listing does not prove serverless-cache creation in a new hub account.
+The CKS bridge reuses the previously verified boto3 1.44.5 pin.

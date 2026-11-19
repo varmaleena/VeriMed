@@ -41,3 +41,12 @@ and IAM role bindings, and restricted gateway-only Lambda invocation.
 The final hub runtime must reach private Valkey/reference storage and public providers without NAT gateways;
 that integrated egress/cache topology has not been built or validated. The reusable ingress construct is not
 a deployed HubCKS stack. Cross-account SigV4/PrivateLink tests and hosted CI remain unverified.
+
+## CKS runtime update — 2026-11-19
+
+The no-NAT topology and Linux packaging are now implemented and synthesis-tested in HubCKS.
+The previous runtime/network design blocker is resolved in code, not verified by deployment.
+A hub profile/account and real cell role/endpoint bindings are still required; none were inferred from
+the owner's architectural preference. No account/organization was created. Serverless engine-major support
+must be confirmed during actual deployment. PrivateLink calls, real Valkey access, reference mirroring,
+shared rate limiting, credential rotation and configured alert delivery remain acceptance gates.

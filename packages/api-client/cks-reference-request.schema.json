@@ -1,0 +1,31 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "operation": {
+      "enum": ["normalize", "classes", "labels"],
+      "title": "Operation",
+      "type": "string"
+    },
+    "query": {
+      "additionalProperties": true,
+      "title": "Query",
+      "type": "object"
+    },
+    "traceparent": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{2}-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Traceparent"
+    }
+  },
+  "required": ["operation", "query"],
+  "title": "RpcRequest",
+  "type": "object"
+}

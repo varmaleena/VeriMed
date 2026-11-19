@@ -4,6 +4,7 @@ import { App, Stack, Validations } from "aws-cdk-lib";
 import { AwsSolutionsChecks } from "cdk-nag";
 import { Function as LambdaFunction } from "aws-cdk-lib/aws-lambda";
 import { CksIngress } from "./cks-ingress";
+import { HubCKS } from "./hub-cks";
 import { Match, Template } from "aws-cdk-lib/assertions";
 import { CellFoundation, HubFoundation } from "./foundation";
 import { CellIdentity } from "./cell-identity";
@@ -390,4 +391,63 @@ test("CKS ingress rejects empty caller bindings", () => {
     rejected = true;
   }
   ok(rejected);
+});
+
+test("HubCKS isolates API/cache and permits reference retrieval only through IAM worker", () => {
+  const app = new App();
+  const stack = new HubCKS(app, "KnowledgeHub", {
+    env: { account: "111111111111", region: "us-east-1" },
+    bundle: __dirname,
+    stage: "dev",
+    cacheMajorVersion: "9",
+    callers: [
+      {
+        roleArn: "arn:aws:iam::222222222222:role/reference-client",
+        tenantId: "97d7aa7f-d4a0-4af0-ae84-131142081e90",
+        endpointIds: ["vpce-0123456789abcdef0"],
+        operations: ["normalize", "classes", "labels"],
+      },
+    ],
+  });
+  Validations.of(app).addPlugins(new AwsSolutionsChecks(app));
+  const template = Template.fromStack(stack);
+  template.resourceCountIs("AWS::EC2::NatGateway", 0);
+  template.resourceCountIs("AWS::EC2::InternetGateway", 0);
+  template.resourceCountIs("AWS::Lambda::Url", 0);
+  template.resourceCountIs("AWS::Lambda::Function", 3); // Two app functions plus CDK default-security-group restriction helper.
+  template.resourceCountIs("AWS::EC2::VPCEndpoint", 2);
+  template.hasResourceProperties("AWS::ElastiCache::ServerlessCache", {
+    Engine: "valkey",
+    KmsKeyId: Match.anyValue(),
+    UserGroupId: Match.anyValue(),
+  });
+  template.hasResourceProperties("AWS::ElastiCache::User", {
+    Engine: "valkey",
+    AuthenticationMode: { Type: "password", Passwords: Match.anyValue() },
+    AccessString:
+      "on ~cks:* -@all +get +set +ping +hello +client|setinfo +client|setname",
+  });
+  const functions = Object.values(
+    template.findResources("AWS::Lambda::Function"),
+  );
+  const api = functions.find(
+    (f) => f.Properties.Handler === "cks.service.handler",
+  )!;
+  const worker = functions.find(
+    (f) => f.Properties.Handler === "cks.bridge.handler",
+  )!;
+  ok(api.Properties.VpcConfig && !worker.Properties.VpcConfig);
+  ok(api.Properties.Environment.Variables.CKS_PRIVATE_MODE === "true");
+  ok(!api.Properties.Environment.Variables.VALKEY_URL);
+  ok(api.Properties.Environment.Variables.CKS_CACHE_SECRET_ARN);
+  const groups = Object.values(
+    template.findResources("AWS::EC2::SecurityGroup"),
+  );
+  for (const group of groups) {
+    const ingress = group.Properties.SecurityGroupIngress ?? [];
+    ok(
+      !ingress.some((rule: { CidrIp?: string }) => rule.CidrIp === "0.0.0.0/0"),
+    );
+  }
+  app.synth();
 });

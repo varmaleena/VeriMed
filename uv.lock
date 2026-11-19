@@ -709,6 +709,7 @@ name = "verimed-cks"
 version = "0.0.0"
 source = { virtual = "services/cks" }
 dependencies = [
+    { name = "boto3" },
     { name = "fastapi" },
     { name = "httpx" },
     { name = "mangum" },
@@ -726,6 +727,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "boto3", specifier = "==1.44.5" },
     { name = "fastapi", specifier = "==0.163.2" },
     { name = "httpx", specifier = "==0.28.1" },
     { name = "mangum", specifier = "==0.22.0" },
