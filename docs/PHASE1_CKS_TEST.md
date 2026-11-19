@@ -38,3 +38,35 @@ are pending. Public API smoke probes create no AWS charges; no new AWS spend was
 Validation: 73 Python unit tests passed (21 CKS, 52 API), Ruff check/format passed,
 and strict mypy passed across 31 API/CKS source files. Schema generation and formatting passed.
 Three existing framework deprecation warnings remain. Hosted CI is unverified because no Git remote is configured.
+
+## Fresh-only Valkey cache slice — November 19
+
+CachedKnowledgeClient wraps the real reference client with ValkeyStore. It preserves source dates
+and review flags and expires results within one hour of the oldest source. It never stores errors
+or negative lookups. Corrupt/stale entries and cache outages trigger fresh provider calls;
+if that call fails, the result remains UNVERIFIED. Cache hashes detect corruption, not hostile writes:
+production requires isolated networking, ACL credentials, TLS, and service authorization.
+
+ValkeyStore requires valkeys:// with certificate and hostname verification outside explicitly enabled
+loopback development. URLs with query-string overrides are rejected. VALKEY_URL can contain credentials;
+do not print it or commit it. Dispose the store with await store.aclose() at process shutdown.
+
+Real integration, from repository root with the Compose Valkey service running:
+
+    $env:VALKEY_URL = "valkey://127.0.0.1:6379/0"
+    .venv/Scripts/python.exe services/cks/cache_integration.py --allow-local
+
+This checks a unique transport key's round trip and expiry, then queries live RxNorm twice and proves
+the second lookup retains the original provenance without another provider request. It temporarily
+replaces the metformin cache key; run only against an isolated development/test cache.
+The script deletes its keys afterwards. Failure returns nonzero. No provider responses are fabricated.
+CI runs this against a real Valkey 9.1.3 service; upstream connectivity failure fails the check.
+
+Local real-server integration is unverified: Docker is unavailable and WSL is not installed.
+No Git remote is configured, so the new hosted CI job has not run. No AWS cache was deployed.
+The existing live-provider report predates this cache slice and is not evidence of real cache execution.
+
+Cache-slice validation: 101 unit tests passed (52 API, 49 CKS), including 28 cache tests.
+Ruff and strict mypy passed across 34 source files. TLS constructor tests were rerun after the
+final constructor typing fix. Three pre-existing framework deprecation warnings remain.
+Real-Valkey integration and hosted CI remain unverified for the reasons above.

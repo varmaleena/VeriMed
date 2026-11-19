@@ -45,6 +45,28 @@ jobs:
       - run: pnpm --filter @verimed/cdk exec cdk synth CellFhirDemo -c cellFhirDemo=true --output cdk.out/ci-fhir
         env:
           VERIMED_FHIR_EXPIRES_AT: "2099-01-01T00:00:00Z"
+  cks-cache-integration:
+    runs-on: ubuntu-latest
+    services:
+      valkey:
+        image: valkey/valkey:9.1.3
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "valkey-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          version: "0.13.8"
+          python-version: "3.12"
+      - run: uv sync --locked --all-packages
+      - run: uv run --all-packages python services/cks/cache_integration.py --allow-local --output docs/cks-cache-verification.json
+        env:
+          VALKEY_URL: valkey://127.0.0.1:6379/0
   security:
     runs-on: ubuntu-latest
     steps:

@@ -2,7 +2,7 @@
 name = "verimed-cks"
 version = "0.0.0"
 requires-python = ">=3.12,<3.13"
-dependencies = ["httpx==0.28.1", "pydantic==2.14.3", "opentelemetry-api==1.45.2", "structlog==26.1.0"]
+dependencies = ["httpx==0.28.1", "pydantic==2.14.3", "opentelemetry-api==1.45.2", "structlog==26.1.0", "valkey==6.2.0"]
 
 [dependency-groups]
 dev = ["pytest==9.2.0"]

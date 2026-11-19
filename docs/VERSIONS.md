@@ -21,3 +21,7 @@ The appearance slice adds eslint-config-next 16.4.6, matching the installed fram
 The Phase 1 CKS reference client reuses the previously verified pins: httpx 0.28.1,
 Pydantic 2.14.3, OpenTelemetry API 1.45.2, structlog 26.1.0, and pytest 9.2.0.
 No additional package version was introduced for this slice.
+
+CKS caching pins valkey (valkey-py) 6.2.0, verified as the stable PyPI release on
+November 19, 2026, with Python >=3.11 support. The installed client source was checked
+for async APIs and TLS defaults; hostname verification is explicitly enabled by our adapter.

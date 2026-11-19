@@ -24,3 +24,11 @@ No organization/account/billing changes were made. Hub PrivateLink, authenticate
 Valkey cache, reference mirror, and deployed cross-account acceptance remain unfinished.
 A registered openFDA API key stored in Secrets Manager and a shared quota limiter are needed for sustained service use;
 the bounded public-reference smoke probe used the documented no-key allowance.
+
+## CKS cache integration — 2026-11-19
+
+Valkey cache implementation and unit tests are present. Real-server integration cannot run locally:
+Docker is unavailable and wsl --list --quiet reports WSL is not installed. Needed: a local Valkey
+server (Compose/WSL) or an isolated authorized TLS development cache endpoint reachable by this host.
+The GitHub workflow includes a real Valkey service integration check, but no remote/hosted run is configured.
+Do not treat cache integration, hub caching deployment, or Phase 1 PrivateLink acceptance as passed.
