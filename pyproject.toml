@@ -13,8 +13,8 @@ members = ["services/*", "agents/*"]
 strict = true
 
 [tool.pytest.ini_options]
-pythonpath = ["services/api", "services/cks"]
-testpaths = ["services/api/tests", "services/cks/tests"]
+pythonpath = ["services/api", "services/cks", "services/simulator"]
+testpaths = ["services/api/tests", "services/cks/tests", "services/simulator/tests"]
 
 [tool.ruff]
 extend-exclude = ["docs/0*.md", "AGENTS.md", ".venv-s2", ".venv-s2-proxy"]

@@ -2,3 +2,8 @@
 name = "verimed-simulator"
 version = "0.0.0"
 requires-python = ">=3.12,<3.13"
+
+dependencies = ["boto3==1.44.5", "pydantic==2.14.3", "httpx==0.28.1", "opentelemetry-sdk==1.45.2", "structlog==26.1.0"]
+
+[dependency-groups]
+dev = ["pytest==9.2.0"]

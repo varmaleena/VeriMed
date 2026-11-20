@@ -50,3 +50,10 @@ A hub profile/account and real cell role/endpoint bindings are still required; n
 the owner's architectural preference. No account/organization was created. Serverless engine-major support
 must be confirmed during actual deployment. PrivateLink calls, real Valkey access, reference mirroring,
 shared rate limiting, credential rotation and configured alert delivery remain acceptance gates.
+
+## Phase 1 FHIR runner packaging — 2026-11-20
+
+Real local Synthea generation and the 50-patient HealthLake import/read-back passed.
+The hosted Synthea container task has not been packaged/deployed; Docker/WSL and hosted GitHub CI
+remain unavailable. The existing datastore still expires at 2026-11-20T13:04:54Z.
+The deployed transfer stack is independent and retains its KMS key/buckets; input/output lifecycle is seven days.

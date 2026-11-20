@@ -10,6 +10,7 @@ import { CellFoundation, HubFoundation } from "./foundation";
 import { CellIdentity } from "./cell-identity";
 import { CellWorklist } from "./cell-worklist";
 import { CellFhirDemo } from "./cell-fhir-demo";
+import { CellFhirImport } from "./cell-fhir-import";
 import { CellLedger } from "./cell-ledger";
 
 for (const StackType of [HubFoundation, CellFoundation]) {
@@ -449,5 +450,49 @@ test("HubCKS isolates API/cache and permits reference retrieval only through IAM
       !ingress.some((rule: { CidrIp?: string }) => rule.CidrIp === "0.0.0.0/0"),
     );
   }
+  app.synth();
+});
+
+test("FHIR import permissions are scoped to one datastore and encrypted transfer prefixes", () => {
+  const app = new App();
+  const stack = new CellFhirImport(app, "Import", {
+    stage: "dev",
+    tenant: "a",
+    env: { account: "111111111111", region: "us-east-1" },
+    datastoreArn:
+      "arn:aws:healthlake:us-east-1:111111111111:datastore/fhir/0123456789abcdef0123456789abcdef",
+  });
+  Validations.of(app).addPlugins(new AwsSolutionsChecks(app));
+  const template = Template.fromStack(stack);
+  template.resourceCountIs("AWS::HealthLake::FHIRDatastore", 0);
+  template.hasResourceProperties("AWS::S3::Bucket", {
+    VersioningConfiguration: { Status: "Enabled" },
+    BucketEncryption: {
+      ServerSideEncryptionConfiguration: Match.arrayWith([
+        Match.objectLike({
+          ServerSideEncryptionByDefault: {
+            SSEAlgorithm: "aws:kms",
+            KMSMasterKeyID: Match.anyValue(),
+          },
+        }),
+      ]),
+    },
+  });
+  template.hasResourceProperties("AWS::IAM::Role", {
+    AssumeRolePolicyDocument: {
+      Statement: Match.arrayWith([
+        Match.objectLike({
+          Principal: { Service: "healthlake.amazonaws.com" },
+          Condition: {
+            StringEquals: { "aws:SourceAccount": "111111111111" },
+            ArnEquals: {
+              "aws:SourceArn":
+                "arn:aws:healthlake:us-east-1:111111111111:datastore/fhir/0123456789abcdef0123456789abcdef",
+            },
+          },
+        }),
+      ]),
+    },
+  });
   app.synth();
 });

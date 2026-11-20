@@ -41,3 +41,10 @@ Storage/ECPU settings are service limits, not a guaranteed billing cap. Multi-AZ
 No new hub resources were deployed and no new spend was incurred by local packaging/synthesis.
 
 [ElastiCache pricing](https://aws.amazon.com/elasticache/pricing/) · [PrivateLink pricing](https://aws.amazon.com/privatelink/pricing/)
+
+The November 20 real FHIR import reused the already-running HealthLake datastore and did not extend
+its two-day expiry. The 148 MB cohort is within the documented first 10 GB included storage.
+Import was estimated at $0.05 incremental transfer/storage/requests, not measured billing.
+CellFhirImport adds one retained KMS CMK (about $1/month), plus small encrypted S3/log storage.
+The actual result was 77,470 accepted resources and zero rejected; NLP was explicitly disabled in
+the datastore CloudFormation configuration before submission.

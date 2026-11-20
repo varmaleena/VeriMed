@@ -872,6 +872,30 @@ source = { virtual = "agents/shared" }
 name = "verimed-simulator"
 version = "0.0.0"
 source = { virtual = "services/simulator" }
+dependencies = [
+    { name = "boto3" },
+    { name = "httpx" },
+    { name = "opentelemetry-sdk" },
+    { name = "pydantic" },
+    { name = "structlog" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "boto3", specifier = "==1.44.5" },
+    { name = "httpx", specifier = "==0.28.1" },
+    { name = "opentelemetry-sdk", specifier = "==1.45.2" },
+    { name = "pydantic", specifier = "==2.14.3" },
+    { name = "structlog", specifier = "==26.1.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = "==9.2.0" }]
 
 [[package]]
 name = "verimed-tools"

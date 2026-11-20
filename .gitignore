@@ -17,3 +17,6 @@ dist/
 !.env.example
 .phase1-cks/
 .phase1-db/
+.pytest_tmp/
+
+.phase1-fhir/

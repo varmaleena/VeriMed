@@ -1,0 +1,15 @@
+{
+  "checked_at": "2026-11-20T05:39:05.728651+00:00",
+  "backend": "healthlake",
+  "job_id": "c5ff3d01237a20cd0caa49cf95720c5c",
+  "job_status": "COMPLETED",
+  "submitted_patients": 50,
+  "verified_patients": 50,
+  "resources_submitted": 77470,
+  "resources_imported": 77470,
+  "resources_rejected": 0,
+  "input_sha256": "ac642ac10a672a9d607b6d7aec7e89aaf1d5cb902f03d3a2e454f4c4e0365b03",
+  "source_version_pinned": true,
+  "estimated_incremental_usd": 0.05,
+  "status": "PASSED"
+}

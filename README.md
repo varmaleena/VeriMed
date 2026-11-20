@@ -1,6 +1,6 @@
-# VeriMed Phase 0
+# ChartVigil / VeriMed
 
-The workspace contains the Phase 0 foundation. Install GNU Make, Node.js 24, pnpm at the version in package.json, uv, Git, and Docker with Compose v2. Copy .env.example to .env and set fresh local PostgreSQL and MinIO credentials. Run with synthetic data only.
+The workspace contains the deployed dev foundations and an in-progress Phase 1 platform. See docs/IMPLEMENTATION_STATUS.md and docs/BLOCKERS.md for exact acceptance gaps. HIPAA-aligned design, synthetic data only. Install GNU Make, Node.js 24, pnpm at the version in package.json, uv, Git, and Docker with Compose v2. Copy .env.example to .env and set fresh local PostgreSQL and MinIO credentials. Run with synthetic data only.
 
 ```sh
 make bootstrap
@@ -27,7 +27,7 @@ For the Phase 0 AWS handoff, verify the deployed dev cell with the authorized pr
 aws cloudformation describe-stacks --stack-name CellFoundation --profile default --region us-east-1 --query 'Stacks[0].StackStatus' --output text
 ```
 
-Expect `CREATE_COMPLETE`. Local `make test` should report two passing foundation tests. `make synth` should synthesize both foundation stacks with cdk-nag enabled. The [spike evidence](docs/spikes/README.md) tracks the live checks and outstanding acceptance work.
+Expect `CREATE_COMPLETE`. Local `make test` runs the Python unit suite and CDK infrastructure tests. `make synth` should synthesize both foundation stacks with cdk-nag enabled. The [spike evidence](docs/spikes/README.md) tracks the live checks and outstanding acceptance work.
 
 The HAPI benchmark uses the same Synthea cohort as HealthLake. With Docker Compose running and a fresh HAPI database, run the following command against the local prepared fixture.
 

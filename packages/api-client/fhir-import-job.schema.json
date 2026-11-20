@@ -1,0 +1,153 @@
+{
+  "$defs": {
+    "Cohort": {
+      "additionalProperties": false,
+      "properties": {
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "resource_count": {
+          "minimum": 1,
+          "title": "Resource Count",
+          "type": "integer"
+        },
+        "byte_count": {
+          "maximum": 536870912,
+          "minimum": 1,
+          "title": "Byte Count",
+          "type": "integer"
+        },
+        "patient_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9.-]{1,64}$",
+            "type": "string"
+          },
+          "maxItems": 50,
+          "minItems": 1,
+          "title": "Patient Ids",
+          "type": "array"
+        }
+      },
+      "required": ["sha256", "resource_count", "byte_count", "patient_ids"],
+      "title": "Cohort",
+      "type": "object"
+    },
+    "ImportConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "tenant_id": {
+          "format": "uuid",
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "tenant_slug": {
+          "pattern": "^[a-z][a-z0-9-]{0,31}$",
+          "title": "Tenant Slug",
+          "type": "string"
+        },
+        "region": {
+          "pattern": "^[a-z]{2}-[a-z]+-[0-9]+$",
+          "title": "Region",
+          "type": "string"
+        },
+        "datastore_id": {
+          "pattern": "^[0-9a-f]{32}$",
+          "title": "Datastore Id",
+          "type": "string"
+        },
+        "datastore_arn": {
+          "title": "Datastore Arn",
+          "type": "string"
+        },
+        "endpoint": {
+          "title": "Endpoint",
+          "type": "string"
+        },
+        "bucket": {
+          "pattern": "^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$",
+          "title": "Bucket",
+          "type": "string"
+        },
+        "key_arn": {
+          "pattern": "^arn:aws:kms:[a-z0-9-]+:[0-9]{12}:key/[A-Za-z0-9-]+$",
+          "title": "Key Arn",
+          "type": "string"
+        },
+        "role_arn": {
+          "pattern": "^arn:aws:iam::[0-9]{12}:role/[A-Za-z0-9+=,.@_/-]+$",
+          "title": "Role Arn",
+          "type": "string"
+        },
+        "expires_at": {
+          "format": "date-time",
+          "title": "Expires At",
+          "type": "string"
+        },
+        "estimated_usd": {
+          "exclusiveMinimum": 0,
+          "title": "Estimated Usd",
+          "type": "number"
+        },
+        "synthetic": {
+          "const": true,
+          "default": true,
+          "title": "Synthetic",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "tenant_id",
+        "tenant_slug",
+        "region",
+        "datastore_id",
+        "datastore_arn",
+        "endpoint",
+        "bucket",
+        "key_arn",
+        "role_arn",
+        "expires_at",
+        "estimated_usd"
+      ],
+      "title": "ImportConfig",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "config": {
+      "$ref": "#/$defs/ImportConfig"
+    },
+    "cohort": {
+      "$ref": "#/$defs/Cohort"
+    },
+    "job_id": {
+      "title": "Job Id",
+      "type": "string"
+    },
+    "source_key": {
+      "title": "Source Key",
+      "type": "string"
+    },
+    "source_version_id": {
+      "title": "Source Version Id",
+      "type": "string"
+    },
+    "submitted_at": {
+      "format": "date-time",
+      "title": "Submitted At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "config",
+    "cohort",
+    "job_id",
+    "source_key",
+    "source_version_id",
+    "submitted_at"
+  ],
+  "title": "ImportState",
+  "type": "object"
+}

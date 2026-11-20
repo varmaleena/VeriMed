@@ -38,3 +38,8 @@ Phase 1 schema tooling pins SQLAlchemy 2.1.9 (asyncio extra), asyncpg 0.32.0 and
 These stable release versions and Python requirements were verified through PyPI on November 19, 2026.
 The asyncio extra locks greenlet 3.5.6 transitively. Alembic path_separator=os handles Windows workspace
 paths containing spaces.
+
+Synthea v4.0.0 release metadata was rechecked on November 20, 2026. The local JAR exactly matched
+the upstream SHA-256 digest ed43c20ad40ba5c3bc724503a5af032715fe3c491620b766148e7c2361e6ecc1.
+The runner's actual CLI/exporter options were checked against its shipped help and properties.
+The simulator/loader reuses boto3 1.44.5, Pydantic 2.14.3, httpx 0.28.1, OTel SDK 1.45.2 and structlog 26.1.0.

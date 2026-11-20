@@ -3,6 +3,7 @@ import { AwsSolutionsChecks } from "cdk-nag";
 import { CellIdentity } from "./cell-identity";
 import { CellWorklist } from "./cell-worklist";
 import { CellFhirDemo } from "./cell-fhir-demo";
+import { CellFhirImport } from "./cell-fhir-import";
 import { CellLedger } from "./cell-ledger";
 import { HubCKS } from "./hub-cks";
 import { CksCaller } from "./cks-ingress";
@@ -151,5 +152,19 @@ if (app.node.tryGetContext("hubCks") === "true") {
     cacheMajorVersion,
     callers,
     env: { region, account: hub },
+  });
+}
+
+if (app.node.tryGetContext("cellFhirImport") === "true") {
+  const datastoreArn = process.env.FHIR_DATASTORE_ARN;
+  if (!datastoreArn)
+    throw new Error(
+      "FHIR_DATASTORE_ARN is required for the existing import destination",
+    );
+  new CellFhirImport(app, "CellFhirImport", {
+    datastoreArn,
+    stage,
+    tenant,
+    env: { region, account: process.env.VERIMED_CELL_ACCOUNT },
   });
 }
