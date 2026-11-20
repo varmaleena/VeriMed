@@ -32,7 +32,7 @@ jobs:
       - run: uv run --all-packages python services/cks/export_schema.py
       - run: uv run --all-packages python services/simulator/export_schema.py
       - run: pnpm --filter @verimed/api-client generate
-      - run: git diff --exit-code -- packages/api-client/openapi.json packages/api-client/schema.d.ts packages/api-client/ledger-anchor-job.schema.json packages/api-client/cks.schema.json packages/api-client/cks.openapi.json packages/api-client/cks-api.d.ts packages/api-client/cks-reference-request.schema.json packages/api-client/fhir-import-job.schema.json
+      - run: git diff --exit-code -- packages/api-client/openapi.json packages/api-client/schema.d.ts packages/api-client/ledger-anchor-job.schema.json packages/api-client/cks.schema.json packages/api-client/cks.openapi.json packages/api-client/cks-api.d.ts packages/api-client/cks-reference-request.schema.json packages/api-client/fhir-import-job.schema.json packages/api-client/synthea-generation-job.schema.json
       - run: make test
       - run: make synth
       - run: pnpm --filter @verimed/cdk exec cdk synth CellLedger -c cellLedger=true --output cdk.out/ci-ledger
@@ -52,6 +52,21 @@ jobs:
       - run: pnpm --filter @verimed/cdk exec cdk synth CellFhirDemo -c cellFhirDemo=true --output cdk.out/ci-fhir
         env:
           VERIMED_FHIR_EXPIRES_AT: "2099-01-01T00:00:00Z"
+  synthea-image:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          version: "0.13.8"
+          python-version: "3.12"
+      - run: uv sync --locked --all-packages
+      - run: uv run --all-packages python services/simulator/prepare_image.py
+      - run: docker build --platform linux/arm64 -f services/simulator/container/Dockerfile -t verimed-synthea:check .
+      - name: Generate one real patient in the locked-down container
+        run: docker run --rm --network none --read-only --memory 2g --cpus 1 --cap-drop ALL --security-opt no-new-privileges --entrypoint timeout verimed-synthea:check --signal=TERM --kill-after=20s 10m python -m simulator.container_smoke
+      - run: docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.76.2 image --severity HIGH,CRITICAL --exit-code 1 verimed-synthea:check
   cks-cache-integration:
     runs-on: ubuntu-latest
     services:

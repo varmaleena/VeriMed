@@ -1,0 +1,8 @@
+**
+!services/
+!services/simulator/
+!services/simulator/simulator/
+!services/simulator/simulator/*.py
+!.build-synthea/
+!.build-synthea/requirements.txt
+!.build-synthea/synthea.jar

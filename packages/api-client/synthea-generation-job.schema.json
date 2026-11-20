@@ -1,0 +1,19 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "job_id": {
+      "format": "uuid",
+      "title": "Job Id",
+      "type": "string"
+    },
+    "population": {
+      "maximum": 50,
+      "minimum": 1,
+      "title": "Population",
+      "type": "integer"
+    }
+  },
+  "required": ["job_id", "population"],
+  "title": "GenerationJob",
+  "type": "object"
+}

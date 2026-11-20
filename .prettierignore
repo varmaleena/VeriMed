@@ -15,3 +15,4 @@ docs/spikes/s5-us-east-1.json
 .pytest_tmp/
 
 .phase1-fhir/
+.build-synthea/

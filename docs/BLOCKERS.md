@@ -54,9 +54,24 @@ shared rate limiting, credential rotation and configured alert delivery remain a
 ## Phase 1 FHIR runner packaging — 2026-11-20
 
 Real local Synthea generation and the 50-patient HealthLake import/read-back passed.
-The hosted Synthea container task has not been packaged/deployed; Docker/WSL and hosted GitHub CI
-remain unavailable. The existing datastore still expires at 2026-11-20T13:04:54Z.
+The original Docker/WSL packaging blocker is resolved using the IaC-managed ARM CodeBuild project.
+The private hosted task now passes real 1- and 50-patient runs; hosted GitHub CI remains unavailable.
+The datastore was deleted at the end of its 2026-11-20T13:04:54Z window and was not recreated.
 The deployed transfer stack is independent and retains its KMS key/buckets; input/output lifecycle is seven days.
 
 ## Sentry delivery (2026-11-20)
+
 API categorical reporting and an actual SDK-envelope privacy test are implemented. No Sentry project/DSN is configured. Provide the project DSN through deployment configuration and verify a scrubbed remote smoke event. Browser reporting and distributed traces remain unverified. No remote-delivery claim is made.
+
+## Synthea task progress and FHIR expiry — 2026-11-20
+
+CellSynthea is deployed with an on-demand ARM builder and private Fargate workflow. The first Debian
+image had 15 HIGH ECR findings; it was not activated as a task and was deleted. The replacement Alpine
+image passed real generation and ECR basic OS scanning with zero findings. Actual 1- and 50-patient
+Fargate executions succeeded, including KMS/version/checksum/cohort-count verification. The 50-patient
+run produced 65,666 resources in 105.22 seconds. Evidence: docs/synthea-task-verification.json.
+The new cohort has not been imported into a new HealthLake datastore; the previous 50-patient import
+remains separately verified. HealthLake reported DELETED after the approved test-window teardown.
+The approved plan remains to recreate it for recording; recording timing has not been supplied.
+Hosted CI, broader Trivy dependency scanning, hub account access and deployed web observability
+remain acceptance gates; a successful task does not complete Phase 1.

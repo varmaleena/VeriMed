@@ -46,3 +46,15 @@ The simulator/loader reuses boto3 1.44.5, Pydantic 2.14.3, httpx 0.28.1, OTel SD
 
 API manual error reporting pins sentry-sdk 2.75.0, verified through PyPI on November 20, 2026.
 The installed 2.x SDK options were checked directly; newer documentation-only 3.x options are not used.
+
+Synthea container base digests were verified against Docker Hub on November 20, 2026.
+The initial Debian-based candidate was rejected after its ECR scan; the current runtime uses:
+
+- python:3.12-alpine @ sha256:c5ba3deef00c7758561a0f03c26f44f10589263d40e732b8748e0d1f38f6dd89
+- eclipse-temurin:21-jre-alpine @ sha256:ac05c3c42b7c2f1a52c9bd52f01041fa1958231b15ebeae7420429cbc5baf474
+
+AWS list-curated-environment-images confirmed aws/codebuild/amazonlinux-aarch64-standard:4.0.
+The build host receives AWS security patches; the application image is deployed by immutable digest.
+GitHub's current runner reference confirms ubuntu-24.04-arm supports native ARM image validation.
+The replacement ARM image generated a real patient and completed ECR basic scanning with zero findings.
+That OS scan does not substitute for the broader Trivy/Java/Python dependency checks in CI.

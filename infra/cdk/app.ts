@@ -4,6 +4,9 @@ import { CellIdentity } from "./cell-identity";
 import { CellWorklist } from "./cell-worklist";
 import { CellFhirDemo } from "./cell-fhir-demo";
 import { CellFhirImport } from "./cell-fhir-import";
+import { CellSynthea } from "./cell-synthea";
+import { Bucket } from "aws-cdk-lib/aws-s3";
+import { Key } from "aws-cdk-lib/aws-kms";
 import { CellLedger } from "./cell-ledger";
 import { HubCKS } from "./hub-cks";
 import { CksCaller } from "./cks-ingress";
@@ -23,11 +26,36 @@ new HubFoundation(app, "HubFoundation", {
   tenant: "hub",
   env: { region, account: process.env.VERIMED_HUB_ACCOUNT },
 });
-new CellFoundation(app, "CellFoundation", {
+const cellFoundation = new CellFoundation(app, "CellFoundation", {
   stage,
   tenant,
   env: { region, account: process.env.VERIMED_CELL_ACCOUNT },
 });
+if (app.node.tryGetContext("cellSynthea") === "true") {
+  const bucketName = process.env.VERIMED_TRANSFER_BUCKET;
+  const keyArn = process.env.VERIMED_TRANSFER_KEY_ARN;
+  const s3PrefixListId = process.env.VERIMED_S3_PREFIX_LIST_ID;
+  if (!bucketName || !keyArn || !s3PrefixListId)
+    throw new Error(
+      "Existing cell transfer bucket/key and regional S3 prefix list are required",
+    );
+  new CellSynthea(app, "CellSynthea", {
+    stage,
+    tenant,
+    vpc: cellFoundation.vpc,
+    endpointSecurityGroup: cellFoundation.endpointSecurityGroup,
+    s3PrefixListId,
+    transferBucket: Bucket.fromBucketName(
+      cellFoundation,
+      "SyntheaTransfer",
+      bucketName,
+    ),
+    transferKey: Key.fromKeyArn(cellFoundation, "SyntheaTransferKey", keyArn),
+    imageDigest: process.env.VERIMED_SYNTHEA_IMAGE_DIGEST,
+    buildContext: process.env.VERIMED_SYNTHEA_BUILD_CONTEXT,
+    env: { region, account: process.env.VERIMED_CELL_ACCOUNT },
+  });
+}
 Validations.of(app).addPlugins(new AwsSolutionsChecks(app));
 if (app.node.tryGetContext("cellLedger") === "true") {
   const workerEnabled = app.node.tryGetContext("cellLedgerWorker") === "true";

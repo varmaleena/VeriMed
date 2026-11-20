@@ -48,3 +48,5 @@ Import was estimated at $0.05 incremental transfer/storage/requests, not measure
 CellFhirImport adds one retained KMS CMK (about $1/month), plus small encrypted S3/log storage.
 The actual result was 77,470 accepted resources and zero rejected; NLP was explicitly disabled in
 the datastore CloudFormation configuration before submission.
+
+The bounded Synthea builder/task adds one retained KMS CMK (about 1 USD/month), ECR and small log/source storage. No always-on ECS service or additional endpoint is provisioned. Budget estimate for one build and one short validation task: under 0.25 USD; this is not a billing measurement. Builder timeout is 25 minutes, container limit 35 minutes, workflow limit 40 minutes. The HealthLake datastore was verified DELETED after the approved November 20 13:04:54 UTC teardown; it was not recreated.

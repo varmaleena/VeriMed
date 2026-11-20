@@ -1,0 +1,54 @@
+{
+  "verified_at": "2026-11-20T14:01:09.042600+00:00",
+  "status": "PASS",
+  "region": "us-east-1",
+  "stack": "CellSynthea",
+  "image_digest": "sha256:42b7c8b28c8506aff4237b021084aaea7b3daea9c2b2a536fbc3a6c84ea77efb",
+  "image_scan": {
+    "scanner": "ECR basic OS scan",
+    "status": "COMPLETE",
+    "finding_severity_counts": {}
+  },
+  "rejected_candidate": {
+    "high_findings": 15,
+    "image_deleted": true,
+    "deployed_as_task": false
+  },
+  "runtime_tests": [
+    {
+      "job_id": "30c883ba-97b1-4dd8-829a-0a4f9164e282",
+      "execution_status": "SUCCEEDED",
+      "population": 1,
+      "resources": 440,
+      "bytes": 878951,
+      "sha256": "de7f2c6d62064bb6434550006c8f62988ab97b5f1b91be2a6d028471a5ff4430",
+      "duration_seconds": 72.92,
+      "container_exit_codes": [0],
+      "kms_encryption_verified": true,
+      "pinned_source_version_verified": true,
+      "source_checksum_verified": true,
+      "cohort_count_verified": true
+    },
+    {
+      "job_id": "7ddf6a65-b39d-40e7-a56b-29e5cfa2e1fc",
+      "execution_status": "SUCCEEDED",
+      "population": 50,
+      "resources": 65666,
+      "bytes": 127737676,
+      "sha256": "954250e9f9bf96b4ea1ce114f75c5c3f177409400dfcc0332bfb1ff29efe945f",
+      "duration_seconds": 105.22,
+      "container_exit_codes": [0],
+      "kms_encryption_verified": true,
+      "pinned_source_version_verified": true,
+      "source_checksum_verified": true,
+      "cohort_count_verified": true
+    }
+  ],
+  "python_unit_tests": 175,
+  "cdk_tests": 15,
+  "hosted_github_ci_verified": false,
+  "managed_fhir_import_for_this_new_cohort": false,
+  "healthlake_window_status": "DELETED; not recreated",
+  "validation_budget_estimate_usd": 0.25,
+  "billing_measured": false
+}

@@ -34,6 +34,8 @@ export interface FoundationProps extends StackProps {
 }
 
 export class Foundation extends Stack {
+  public readonly vpc: Vpc;
+  public readonly endpointSecurityGroup: SecurityGroup;
   constructor(scope: Construct, id: string, props: FoundationProps) {
     super(scope, id, props);
     Tags.of(this).add("Project", "verimed");
@@ -85,6 +87,7 @@ export class Foundation extends Stack {
         All: { destination: FlowLogDestination.toCloudWatchLogs(logs) },
       },
     });
+    this.vpc = vpc;
     vpc.addGatewayEndpoint("S3", { service: GatewayVpcEndpointAwsService.S3 });
     const endpoints = {
       Bedrock: InterfaceVpcEndpointAwsService.BEDROCK_RUNTIME,
@@ -107,6 +110,7 @@ export class Foundation extends Stack {
           "Permit explicitly authorized workload security groups to reach VPC endpoints",
       },
     );
+    this.endpointSecurityGroup = endpointSecurityGroup;
     for (const [name, service] of Object.entries(endpoints)) {
       vpc.addInterfaceEndpoint(name, {
         service,

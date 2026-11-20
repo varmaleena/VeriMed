@@ -14,6 +14,8 @@ The first Compose build compiles the pinned MinIO Community source. See [blocker
 On Windows PowerShell, the following commands run the same unit tests and CDK synthesis as `make test` and `make synth`. Run them from the repository root.
 
 ```powershell
+uv sync --locked --all-packages
+uv run --all-packages pytest
 pnpm install --frozen-lockfile
 pnpm --filter @verimed/cdk test
 pnpm --filter @verimed/cdk exec cdk synth HubFoundation CellFoundation
@@ -27,7 +29,12 @@ For the Phase 0 AWS handoff, verify the deployed dev cell with the authorized pr
 aws cloudformation describe-stacks --stack-name CellFoundation --profile default --region us-east-1 --query 'Stacks[0].StackStatus' --output text
 ```
 
-Expect `CREATE_COMPLETE`. Local `make test` runs the Python unit suite and CDK infrastructure tests. `make synth` should synthesize both foundation stacks with cdk-nag enabled. The [spike evidence](docs/spikes/README.md) tracks the live checks and outstanding acceptance work.
+Expect `CREATE_COMPLETE` or `UPDATE_COMPLETE`. Local `make test` runs the Python unit suite and CDK infrastructure tests. `make synth` should synthesize both foundation stacks with cdk-nag enabled. The [spike evidence](docs/spikes/README.md) tracks the live checks and outstanding acceptance work.
+
+The [hosted Synthea runner](docs/PHASE1_SYNTHEA_TASK_TEST.md) is deployed as a private on-demand
+Fargate task, built through ARM CodeBuild. Real 1- and 50-patient runs passed; see the
+[verification evidence](docs/synthea-task-verification.json). HealthLake's approved two-day window
+has ended; generation does not recreate a datastore or extend that window.
 
 The HAPI benchmark uses the same Synthea cohort as HealthLake. With Docker Compose running and a fresh HAPI database, run the following command against the local prepared fixture.
 

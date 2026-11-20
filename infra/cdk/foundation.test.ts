@@ -11,7 +11,104 @@ import { CellIdentity } from "./cell-identity";
 import { CellWorklist } from "./cell-worklist";
 import { CellFhirDemo } from "./cell-fhir-demo";
 import { CellFhirImport } from "./cell-fhir-import";
+import { CellSynthea } from "./cell-synthea";
+import { Bucket } from "aws-cdk-lib/aws-s3";
+import { Key } from "aws-cdk-lib/aws-kms";
 import { CellLedger } from "./cell-ledger";
+
+test("Synthea uses a bounded on-demand private task and immutable image", () => {
+  const app = new App();
+  const env = { account: "111111111111", region: "us-east-1" };
+  const foundation = new CellFoundation(app, "TaskFoundation", {
+    stage: "dev",
+    tenant: "a",
+    env,
+  });
+  const stack = new CellSynthea(app, "Generation", {
+    env,
+    stage: "dev",
+    tenant: "a",
+    vpc: foundation.vpc,
+    endpointSecurityGroup: foundation.endpointSecurityGroup,
+    s3PrefixListId: "pl-01234567",
+    transferBucket: Bucket.fromBucketName(
+      foundation,
+      "Transfer",
+      "unit-only-bucket",
+    ),
+    transferKey: Key.fromKeyArn(
+      foundation,
+      "TransferKey",
+      "arn:aws:kms:us-east-1:111111111111:key/00000000-0000-0000-0000-000000000001",
+    ),
+    imageDigest: `sha256:${"a".repeat(64)}`,
+    buildContext: __dirname,
+  });
+  Validations.of(app).addPlugins(new AwsSolutionsChecks(app));
+  const template = Template.fromStack(stack);
+  template.resourceCountIs("AWS::ECS::Service", 0);
+  template.resourceCountIs("AWS::EC2::NatGateway", 0);
+  template.hasResourceProperties("AWS::CodeBuild::Project", {
+    TimeoutInMinutes: 25,
+    ConcurrentBuildLimit: 1,
+    Environment: Match.objectLike({
+      Type: "ARM_CONTAINER",
+      PrivilegedMode: true,
+      ComputeType: "BUILD_GENERAL1_SMALL",
+    }),
+  });
+  template.hasResourceProperties("AWS::ECR::Repository", {
+    ImageTagMutability: "IMMUTABLE",
+    ImageScanningConfiguration: { ScanOnPush: true },
+  });
+  template.hasResourceProperties("AWS::ECS::TaskDefinition", {
+    Cpu: "1024",
+    Memory: "2048",
+    RuntimePlatform: {
+      CpuArchitecture: "ARM64",
+      OperatingSystemFamily: "LINUX",
+    },
+    ContainerDefinitions: Match.arrayWith([
+      Match.objectLike({ User: "10001:10001", ReadonlyRootFilesystem: true }),
+    ]),
+  });
+  template.hasResourceProperties("AWS::StepFunctions::StateMachine", {
+    LoggingConfiguration: Match.objectLike({ IncludeExecutionData: false }),
+    TracingConfiguration: { Enabled: true },
+  });
+  const policies = Object.values(template.findResources("AWS::IAM::Policy"));
+  const statements = policies.flatMap(
+    (policy) => policy.Properties.PolicyDocument.Statement,
+  );
+  const actionList = (statement: { Action: string | string[] }) =>
+    Array.isArray(statement.Action) ? statement.Action : [statement.Action];
+  const launches = statements.filter((statement) =>
+    actionList(statement).includes("ecs:RunTask"),
+  );
+  ok(
+    launches.length === 1 &&
+      !JSON.stringify(launches[0].Resource).includes("*"),
+  );
+  ok(launches[0].Condition.ArnEquals["ecs:cluster"]);
+  const writes = statements.filter((statement) =>
+    actionList(statement).includes("s3:PutObject"),
+  );
+  ok(writes.length === 1);
+  ok(JSON.stringify(writes[0].Resource).includes("unit-only-bucket/imports/"));
+  ok(
+    !statements.some((statement) =>
+      actionList(statement).some((action) =>
+        [
+          "s3:*",
+          "s3:DeleteObject",
+          "healthlake:*",
+          "secretsmanager:GetSecretValue",
+        ].includes(action),
+      ),
+    ),
+  );
+  app.synth();
+});
 
 for (const StackType of [HubFoundation, CellFoundation]) {
   test(`${StackType.name} uses isolated networking and encrypted flow logs`, () => {
