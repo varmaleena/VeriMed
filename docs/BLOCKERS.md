@@ -57,3 +57,6 @@ Real local Synthea generation and the 50-patient HealthLake import/read-back pas
 The hosted Synthea container task has not been packaged/deployed; Docker/WSL and hosted GitHub CI
 remain unavailable. The existing datastore still expires at 2026-11-20T13:04:54Z.
 The deployed transfer stack is independent and retains its KMS key/buckets; input/output lifecycle is seven days.
+
+## Sentry delivery (2026-11-20)
+API categorical reporting and an actual SDK-envelope privacy test are implemented. No Sentry project/DSN is configured. Provide the project DSN through deployment configuration and verify a scrubbed remote smoke event. Browser reporting and distributed traces remain unverified. No remote-delivery claim is made.

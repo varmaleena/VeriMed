@@ -20,6 +20,8 @@ from pydantic import AwareDatetime, BaseModel
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.database import begin_transaction
+from app.error_reporting import configure as configure_error_reporting
+from app.error_reporting import report
 from app.fhir import PatientPage, read_patients
 
 provider = TracerProvider()
@@ -28,6 +30,7 @@ trace.set_tracer_provider(provider)
 tracer = trace.get_tracer("verimed.api")
 structlog.configure(processors=[structlog.processors.JSONRenderer()])
 logger = structlog.get_logger()
+configure_error_reporting()
 begin_read_transaction = begin_transaction
 app = FastAPI(title="ChartVigil cell API", version="0.1.0", root_path="/v1")
 bearer = HTTPBearer(auto_error=False)
@@ -219,7 +222,8 @@ def http_error(request: Request, error: StarletteHTTPException) -> JSONResponse:
 @app.exception_handler(Exception)
 def unexpected_error(request: Request, error: Exception) -> JSONResponse:
     # Do not serialize exception text, request content, tokens or clinical records.
-    logger.error("request_failed", error_type=type(error).__name__)
+    logger.error("request_failed", error_code="API_UNAVAILABLE")
+    report("API_UNAVAILABLE")
     return JSONResponse(
         status_code=503,
         media_type="application/problem+json",

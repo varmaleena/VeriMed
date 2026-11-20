@@ -43,3 +43,6 @@ Synthea v4.0.0 release metadata was rechecked on November 20, 2026. The local JA
 the upstream SHA-256 digest ed43c20ad40ba5c3bc724503a5af032715fe3c491620b766148e7c2361e6ecc1.
 The runner's actual CLI/exporter options were checked against its shipped help and properties.
 The simulator/loader reuses boto3 1.44.5, Pydantic 2.14.3, httpx 0.28.1, OTel SDK 1.45.2 and structlog 26.1.0.
+
+API manual error reporting pins sentry-sdk 2.75.0, verified through PyPI on November 20, 2026.
+The installed 2.x SDK options were checked directly; newer documentation-only 3.x options are not used.

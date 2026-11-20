@@ -2,7 +2,7 @@
 name = "verimed-api"
 version = "0.0.0"
 requires-python = ">=3.12,<3.13"
-dependencies = ["fastapi==0.163.2", "mangum==0.22.0", "boto3==1.44.5", "opentelemetry-sdk==1.45.2", "structlog==26.1.0", "sqlalchemy[asyncio]==2.1.9", "asyncpg==0.32.0", "alembic==1.20.1"]
+dependencies = ["fastapi==0.163.2", "mangum==0.22.0", "boto3==1.44.5", "opentelemetry-sdk==1.45.2", "structlog==26.1.0", "sqlalchemy[asyncio]==2.1.9", "asyncpg==0.32.0", "alembic==1.20.1", "sentry-sdk==2.75.0"]
 
 [dependency-groups]
 dev = ["pytest==9.2.0", "httpx==0.28.1"]
