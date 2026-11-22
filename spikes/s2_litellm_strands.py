@@ -11,12 +11,12 @@ from pathlib import Path
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
-from pydantic import BaseModel  # type: ignore[import-not-found]
+from pydantic import BaseModel
 from strands import Agent  # type: ignore[import-not-found]
 from strands.models.litellm import LiteLLMModel  # type: ignore[import-not-found]
 
 
-class Result(BaseModel):  # type: ignore[misc]
+class Result(BaseModel):
     value: int
 
 
