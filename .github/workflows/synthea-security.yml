@@ -1,0 +1,49 @@
+name: Synthea dependency remediation
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/synthea-security.yml
+      - services/simulator/container/security-overrides.gradle
+permissions:
+  contents: read
+jobs:
+  candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@v7.0.1
+        with:
+          repository: synthetichealth/synthea
+          ref: 0185c09ea9d10a822c6f5f3ef9bdcbcbe960c813
+          path: .build-synthea/source
+          persist-credentials: false
+      - uses: actions/setup-java@v6.3.0
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Build pinned source with fixed dependencies
+        working-directory: .build-synthea/source
+        run: ./gradlew --no-daemon --max-workers=2 -Dorg.gradle.jvmargs=-Xmx2g -I ../../services/simulator/container/security-overrides.gradle shadowJar
+      - name: Scan candidate JAR without weakening the security gate
+        run: |
+          docker run --rm -v "$PWD/.build-synthea/source/build/libs:/scan:ro" -v "$PWD/.build-synthea:/reports" aquasec/trivy:0.76.2 fs --scanners vuln --severity HIGH,CRITICAL --format json --output /reports/candidate-scan.json --exit-code 1 /scan
+      - name: Generate a real patient without network access
+        working-directory: .build-synthea/source
+        run: |
+          mkdir -p /tmp/synthea-candidate
+          timeout 10m java -Xmx1024m -jar build/libs/synthea-with-dependencies.jar -p 1 --exporter.baseDirectory=/tmp/synthea-candidate --exporter.fhir.export=true --exporter.fhir.transaction_bundle=true > /tmp/synthea-candidate/generation.log 2>&1
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          patients = set()
+          for path in Path('/tmp/synthea-candidate/fhir').glob('*.json'):
+              bundle = json.loads(path.read_bytes())
+              for entry in bundle.get('entry', []):
+                  resource = entry.get('resource', {})
+                  if resource.get('resourceType') == 'Patient':
+                      patients.add(resource['id'])
+          assert len(patients) == 1, 'Real FHIR generation failed'
+          print('Real FHIR patient generation passed')
+          PY
