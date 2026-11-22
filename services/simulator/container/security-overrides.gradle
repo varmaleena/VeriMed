@@ -18,6 +18,9 @@ allprojects {
       ]
       if (group == 'ca.uhn.hapi.fhir' && name.startsWith('org.hl7.fhir.')) {
         details.useVersion('6.9.10')
+      } else if (group == 'com.fasterxml.jackson.core' && name == 'jackson-annotations') {
+        // Jackson 2.23 annotations use a minor-only version; follow the library BOM.
+        details.useVersion('2.23')
       } else if (group != null && group.startsWith('com.fasterxml.jackson.')) {
         details.useVersion('2.23.0')
       } else if (pins.containsKey(group + ':' + name)) {

@@ -33,7 +33,7 @@ jobs:
         working-directory: .build-synthea/source
         run: |
           mkdir -p /tmp/synthea-candidate
-          timeout 10m java -Xmx1024m -jar build/libs/synthea-with-dependencies.jar -p 1 --exporter.baseDirectory=/tmp/synthea-candidate --exporter.fhir.export=true --exporter.fhir.transaction_bundle=true > /tmp/synthea-candidate/generation.log 2>&1
+          sudo unshare --net -- env PATH="$PATH" timeout 10m java -Xmx1024m -jar build/libs/synthea-with-dependencies.jar -p 1 --exporter.baseDirectory=/tmp/synthea-candidate --exporter.fhir.export=true --exporter.fhir.transaction_bundle=true > /tmp/synthea-candidate/generation.log 2>&1
           python - <<'PY'
           import json
           from pathlib import Path
