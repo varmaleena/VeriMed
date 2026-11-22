@@ -32,7 +32,7 @@ jobs:
         run: |
           printf 'FROM scratch\nCOPY synthea-with-dependencies.jar /opt/synthea.jar\n' > .build-synthea/source/build/libs/scan.Dockerfile
           docker build -f .build-synthea/source/build/libs/scan.Dockerfile -t synthea-security:candidate .build-synthea/source/build/libs
-          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$PWD/.build-synthea:/reports" aquasec/trivy:0.76.2 image --scanners vuln --severity HIGH,CRITICAL --list-all-pkgs --format json --output /reports/candidate-scan.json --exit-code 1 synthea-security:candidate
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$PWD/.build-synthea:/reports" aquasec/trivy:0.76.2 image --scanners vuln --severity HIGH,CRITICAL --list-all-pkgs --format json --output /reports/candidate-scan.json synthea-security:candidate
           python - <<'PY'
           import json
           from pathlib import Path
@@ -40,6 +40,10 @@ jobs:
           packages = [p for result in report.get('Results', []) if result.get('Type') == 'jar' for p in result.get('Packages', [])]
           assert len(packages) >= 100, 'Embedded Java inventory is missing or incomplete'
           print(f'Inventoried {len(packages)} embedded Java packages')
+          findings = [v for result in report.get('Results', []) for v in result.get('Vulnerabilities', []) if v['Severity'] in ('HIGH', 'CRITICAL')]
+          for finding in findings:
+              print(finding['PkgName'], finding['InstalledVersion'], finding['VulnerabilityID'], finding.get('FixedVersion', 'unfixed'))
+          assert not findings, 'HIGH/CRITICAL Java findings block promotion'
           PY
       - name: Generate a real patient without network access
         working-directory: .build-synthea/source
@@ -63,8 +67,9 @@ jobs:
         working-directory: .build-synthea/source/build/libs
         run: sha256sum synthea-with-dependencies.jar > synthea.sha256
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
         with:
-          name: verified-synthea-candidate
+          name: synthea-security-candidate
           path: |
             .build-synthea/source/build/libs/synthea-with-dependencies.jar
             .build-synthea/source/build/libs/synthea.sha256
