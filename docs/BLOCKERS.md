@@ -2,7 +2,7 @@
 
 - **AWS accounts and notifications.** The owner authorized `default` for the dev cell. CDK bootstrap and `CellFoundation` are deployed in `us-east-1`. The separate hub and management accounts, budget alert recipient, and GitHub repository/environment identifiers for OIDC trust remain unspecified. The default CDK bootstrap uses the AWS managed AdministratorAccess execution policy.
 - **Remaining spike checks.** AgentCore and HealthLake passed their live AWS runs. HAPI started from the verified WAR on Windows, but the corrected import could not run because the JVM exhausted native memory. Run the prepared 50-patient cohort with its practitioner and hospital bundles on a Docker Compose host with sufficient memory and a fresh PostgreSQL database. Four of the six selected Bedrock aliases reported unavailable agreements despite regional availability and entitlement. Runtime invocation checks remain pending for those four.
-- **Hosted CI.** Both the spec source and writable workspace started without Git metadata. Local Git is initialized. Hosted checks require the VeriMed GitHub remote.
+- **Hosted CI.** The owner supplied https://github.com/varmaleena/VeriMed on November 22. The repository is reachable and initially had no branches. First push and hosted checks are being established; green CI is not yet claimed.
 - **Local end-to-end validation.** GNU Make and a running Docker Engine with Compose v2 are required for clean-clone bootstrap and service health checks.
 
 On November 18, the interrupted native HAPI database was reopened and queried successfully. It contained 23 of the required 50 patients. The server was stopped after the count query. The partial run has no valid completion time. Evidence is saved in docs/spikes/s4-hapi-recovery.json. Run the complete benchmark on a host with Docker Compose, sufficient memory, and a fresh PostgreSQL database.
@@ -61,7 +61,7 @@ The deployed transfer stack is independent and retains its KMS key/buckets; inpu
 
 ## Sentry delivery (2026-11-20)
 
-API categorical reporting and an actual SDK-envelope privacy test are implemented. No Sentry project/DSN is configured. Provide the project DSN through deployment configuration and verify a scrubbed remote smoke event. Browser reporting and distributed traces remain unverified. No remote-delivery claim is made.
+API categorical reporting and an actual SDK-envelope privacy test are implemented. No Sentry project/DSN is configured. Provide the project DSN through deployment configuration and verify a scrubbed remote smoke event. Browser reporting and web-to-API tracing remain unverified. API-to-database tracing passed on November 22. No Sentry remote-delivery claim is made.
 
 ## Synthea task progress and FHIR expiry — 2026-11-20
 

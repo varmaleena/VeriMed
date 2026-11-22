@@ -5,6 +5,7 @@ import { CellWorklist } from "./cell-worklist";
 import { CellFhirDemo } from "./cell-fhir-demo";
 import { CellFhirImport } from "./cell-fhir-import";
 import { CellSynthea } from "./cell-synthea";
+import { CellObservability } from "./cell-observability";
 import { Bucket } from "aws-cdk-lib/aws-s3";
 import { Key } from "aws-cdk-lib/aws-kms";
 import { CellLedger } from "./cell-ledger";
@@ -21,6 +22,14 @@ const app = new App();
 const stage: string = app.node.tryGetContext("env") ?? "dev";
 const tenant: string = app.node.tryGetContext("cell") ?? "a";
 const region = process.env.AWS_REGION ?? "us-east-1";
+const observability =
+  app.node.tryGetContext("cellObservability") === "true"
+    ? new CellObservability(app, "CellObservability", {
+        stage,
+        tenant,
+        env: { region, account: process.env.VERIMED_CELL_ACCOUNT },
+      })
+    : undefined;
 new HubFoundation(app, "HubFoundation", {
   stage,
   tenant: "hub",
@@ -100,7 +109,12 @@ if (app.node.tryGetContext("cellWorklist") === "true") {
   const tenantId = process.env.VERIMED_TENANT_ID;
   if (!bundle || !issuer || !clientId || !tenantId)
     throw new Error("Worklist deployment configuration is required");
-  new CellWorklist(app, "CellWorklist", {
+  const traceExport = app.node.tryGetContext("cellTracing") === "true";
+  if (traceExport && !observability)
+    throw new Error("cellTracing requires cellObservability IaC configuration");
+  const worklist = new CellWorklist(app, "CellWorklist", {
+    traceExport,
+    fhirExpiresAt: process.env.VERIMED_FHIR_EXPIRES_AT,
     bundle,
     issuer,
     clientId,
@@ -124,6 +138,7 @@ if (app.node.tryGetContext("cellWorklist") === "true") {
         : undefined,
     env: { region, account: process.env.VERIMED_CELL_ACCOUNT },
   });
+  if (traceExport && observability) worklist.addStackDependency(observability);
 }
 if (app.node.tryGetContext("cellIdentity") === "true") {
   new CellIdentity(app, "CellIdentity", {

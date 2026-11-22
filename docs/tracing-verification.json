@@ -1,0 +1,23 @@
+{
+  "status": "PASS",
+  "verified_at": "2026-11-22T13:36:06.104956+00:00",
+  "region": "us-east-1",
+  "web_hop_verified": false,
+  "anonymous_status": 401,
+  "unassigned_role_status": 403,
+  "tampered_token_status": 401,
+  "physician_status": 200,
+  "worklist_item_count": 0,
+  "trace_id": "1f96875eb6886dfc36f85824b2febdf6",
+  "authentication": "real Cognito USER_SRP_AUTH; no injected claims",
+  "expired_fhir_status": 410,
+  "observed_span_names": [
+    "api.encounters.list",
+    "api.request",
+    "authorization.list_encounters",
+    "database.encounters.list"
+  ],
+  "span_storage_kms_verified": true,
+  "span_retention_days": 30,
+  "temporary_identity_removed": true
+}

@@ -43,5 +43,9 @@ export async function readCell<T>(
     throw new Error("Your account does not have access to this clinical data.");
   if (response.status === 410) return { unavailable: true, expired: true };
   if (!response.ok) return { unavailable: true };
-  return (await response.json()) as T;
+  try {
+    return (await response.json()) as T;
+  } catch {
+    return { unavailable: true };
+  }
 }

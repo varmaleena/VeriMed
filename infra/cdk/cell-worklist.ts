@@ -1,4 +1,5 @@
 import {
+  ArnFormat,
   CfnOutput,
   Duration,
   RemovalPolicy,
@@ -36,6 +37,8 @@ interface WorklistProps extends StackProps {
   clientId: string;
   tenantId: string;
   fhir?: { endpoint: string; arn: string; expiresAt: string; keyArn: string };
+  traceExport?: boolean;
+  fhirExpiresAt?: string;
 }
 
 export class CellWorklist extends Stack {
@@ -45,6 +48,33 @@ export class CellWorklist extends Stack {
     Tags.of(this).add("Tenant", "a");
     Tags.of(this).add("Env", "dev");
     const key = new Key(this, "DataKey", { enableKeyRotation: true });
+    key.addToResourcePolicy(
+      new PolicyStatement({
+        principals: [
+          new ServicePrincipal(`logs.${this.region}.${this.urlSuffix}`),
+        ],
+        actions: [
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:ReEncryptFrom",
+          "kms:ReEncryptTo",
+          "kms:GenerateDataKey",
+          "kms:GenerateDataKeyWithoutPlaintext",
+          "kms:DescribeKey",
+        ],
+        resources: ["*"],
+        conditions: {
+          ArnLike: {
+            "kms:EncryptionContext:aws:logs:arn": this.formatArn({
+              service: "logs",
+              resource: "log-group",
+              resourceName: `${this.stackName}-*`,
+              arnFormat: ArnFormat.COLON_RESOURCE_NAME,
+            }),
+          },
+        },
+      }),
+    );
     const vpc = new Vpc(this, "DatabaseVpc", {
       maxAzs: 2,
       natGateways: 0,
@@ -172,6 +202,8 @@ export class CellWorklist extends Stack {
     });
     const apiLogs = new LogGroup(this, "ApiLogs", {
       retention: RetentionDays.ONE_MONTH,
+      encryptionKey: key,
+      removalPolicy: RemovalPolicy.RETAIN,
     });
     const api = new Function(this, "Api", {
       runtime: Runtime.PYTHON_3_12,
@@ -187,14 +219,31 @@ export class CellWorklist extends Stack {
         POLICY_STORE_ID: store.attrPolicyStoreId,
         TENANT_ID: props.tenantId,
         COGNITO_CLIENT_ID: props.clientId,
+        VERIMED_ENV: "dev",
+        VERIMED_TRACE_EXPORTER: props.traceExport ? "aws" : "console",
         ...(props.fhir
           ? {
               FHIR_ENDPOINT: props.fhir.endpoint,
               FHIR_EXPIRES_AT: props.fhir.expiresAt,
             }
-          : {}),
+          : props.fhirExpiresAt
+            ? { FHIR_EXPIRES_AT: props.fhirExpiresAt }
+            : {}),
       },
     });
+    if (props.traceExport)
+      api.addToRolePolicy(
+        new PolicyStatement({
+          actions: ["xray:PutTraceSegments"],
+          resources: ["*"],
+        }),
+      );
+    if (props.traceExport)
+      Validations.of(api.role!).acknowledge({
+        id: "AwsSolutions::AwsSolutions-IAM5[Resource::*]",
+        reason:
+          "X-Ray PutTraceSegments does not support resource-level ARNs; this grant contains only that trace-ingestion action.",
+      });
     if (props.fhir)
       api.addToRolePolicy(
         new PolicyStatement({
@@ -240,6 +289,8 @@ export class CellWorklist extends Stack {
     });
     const accessLogs = new LogGroup(this, "AccessLogs", {
       retention: RetentionDays.ONE_MONTH,
+      encryptionKey: key,
+      removalPolicy: RemovalPolicy.RETAIN,
     });
     const jwt = new CfnAuthorizer(this, "Jwt", {
       apiId: http.ref,
@@ -315,7 +366,7 @@ export class CellWorklist extends Stack {
       [
         api,
         ["L1", "IAM4", "IAM5"],
-        "Python 3.12 follows the project specification. CDK-generated Data API permissions require transaction resources and scoped secret access.",
+        "Python 3.12 follows the project specification. Data API uses scoped database/secret access. Optional X-Ray PutTraceSegments does not support resource-level ARNs.",
       ],
     ] as const) {
       for (const rule of rules)

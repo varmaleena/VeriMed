@@ -1,0 +1,4 @@
+# Verified false positive: S3 object-key variable followed by an OTel span name; no credential.
+18d335f6670a5709221b773e52bf476aeae26fde:services/api/app/ledger_anchors.py:generic-api-key:216
+# Verified false positive: specification list 'Secrets, HealthLake/HAPI storage'; no credential.
+1fba1f0cf7c66c6b8a352a18d224fd1eecc801c8:docs/05_NFR_SECURITY_OPS_TESTING.md:generic-api-key:24

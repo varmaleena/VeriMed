@@ -14,8 +14,6 @@ from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from mangum import Mangum
 from opentelemetry import trace
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import ConsoleSpanExporter, SimpleSpanProcessor
 from pydantic import AwareDatetime, BaseModel
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
@@ -23,16 +21,16 @@ from app.database import begin_transaction
 from app.error_reporting import configure as configure_error_reporting
 from app.error_reporting import report
 from app.fhir import PatientPage, read_patients
+from app.telemetry import TraceMiddleware, configure, log_trace_ids
 
-provider = TracerProvider()
-provider.add_span_processor(SimpleSpanProcessor(ConsoleSpanExporter()))
-trace.set_tracer_provider(provider)
+provider = configure()
 tracer = trace.get_tracer("verimed.api")
-structlog.configure(processors=[structlog.processors.JSONRenderer()])
+structlog.configure(processors=[log_trace_ids, structlog.processors.JSONRenderer()])
 logger = structlog.get_logger()
 configure_error_reporting()
 begin_read_transaction = begin_transaction
 app = FastAPI(title="ChartVigil cell API", version="0.1.0", root_path="/v1")
+app.add_middleware(TraceMiddleware)
 bearer = HTTPBearer(auto_error=False)
 Status = Literal[
     "INGESTING", "READY_FOR_AUDIT", "AUDITING", "IN_REVIEW", "SIGNED", "FAILED"
@@ -101,7 +99,9 @@ def principal(
 def authorize(user: Principal, action: str = "ListEncounters") -> None:
     tenant = str(user.tenant_id)
     with tracer.start_as_current_span(
-        "authorization.list_encounters",
+        "authorization.list_patients"
+        if action == "ListPatients"
+        else "authorization.list_encounters",
         record_exception=False,
         set_status_on_exception=False,
     ):
@@ -151,7 +151,8 @@ def list_encounters(
         "database.encounters.list",
         record_exception=False,
         set_status_on_exception=False,
-    ):
+    ) as database_span:
+        database_span.set_attribute("db.system.name", "postgresql")
         transaction = begin_read_transaction(client, connection)
         try:
             client.execute_statement(
@@ -313,4 +314,12 @@ def patients(
         return result
 
 
-handler = Mangum(app, api_gateway_base_path="/v1", lifespan="off")
+_gateway = Mangum(app, api_gateway_base_path="/v1", lifespan="off")
+
+
+def handler(event: dict[str, Any], context: Any) -> Any:
+    try:
+        return _gateway(event, context)
+    finally:
+        if os.environ.get("VERIMED_TRACE_EXPORTER") == "aws":
+            provider.force_flush(timeout_millis=1500)

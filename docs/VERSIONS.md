@@ -58,3 +58,9 @@ The build host receives AWS security patches; the application image is deployed 
 GitHub's current runner reference confirms ubuntu-24.04-arm supports native ARM image validation.
 The replacement ARM image generated a real patient and completed ECR basic scanning with zero findings.
 That OS scan does not substitute for the broader Trivy/Java/Python dependency checks in CI.
+
+Tracing pins opentelemetry-exporter-otlp-proto-http 1.45.2 and requests 2.34.2, matching
+the registry-verified SDK line. Development typing uses types-requests 2.33.0.20261030.
+The live SRP probe uses development-only pycognito 2024.5.1; its registry metadata and
+client-secret/SRP implementation were checked on November 22. It is excluded from API bundles.
+The pinned pnpm 12.21.0 bootstrap metadata was restored in the lockfile; frozen installation passed.

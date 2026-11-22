@@ -24,3 +24,9 @@ The latter generated 65,666 resources in 105.22 seconds; encrypted, versioned ou
 The replacement image completed ECR basic OS scanning with zero findings. Hosted CI and broader
 dependency scanning are not verified. The approved HealthLake testing window ended and its datastore
 is deleted; later recording requires recreation. The new generated cohort was not imported into a new store.
+
+On November 22, CellObservability and the updated CellWorklist API were verified deployed.
+Actual Cognito SRP checks passed: anonymous 401, unassigned-role 403, altered-token 401,
+and physician 200. API, authorization and database spans arrived in encrypted aws/spans
+with thirty-day retention; the temporary identity was removed. The expired FHIR route returns 410.
+Evidence: tracing-verification.json. This proves API-to-database tracing, not the hosted web hop.

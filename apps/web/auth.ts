@@ -13,6 +13,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => ({
   ],
   session: { strategy: "jwt", maxAge: 900 },
   pages: { signIn: "/login" },
+  logger: {
+    error() {
+      console.error(
+        JSON.stringify({
+          event: "authentication_failed",
+          error_code: "AUTH_FAILED",
+        }),
+      );
+    },
+    warn() {
+      console.warn(
+        JSON.stringify({
+          event: "authentication_warning",
+          error_code: "AUTH_WARNING",
+        }),
+      );
+    },
+    debug() {},
+  },
   callbacks: {
     jwt({ token, account, profile }) {
       if (account && profile) {

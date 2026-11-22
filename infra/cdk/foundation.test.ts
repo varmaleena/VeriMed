@@ -12,9 +12,95 @@ import { CellWorklist } from "./cell-worklist";
 import { CellFhirDemo } from "./cell-fhir-demo";
 import { CellFhirImport } from "./cell-fhir-import";
 import { CellSynthea } from "./cell-synthea";
+import { CellObservability } from "./cell-observability";
+import { SPAN_RETENTION_HANDLER } from "./span-retention-handler";
+import { runInNewContext } from "node:vm";
 import { Bucket } from "aws-cdk-lib/aws-s3";
 import { Key } from "aws-cdk-lib/aws-kms";
 import { CellLedger } from "./cell-ledger";
+
+test("Trace retention helper rejects other groups and never logs signed CFN callbacks", async () => {
+  const writes: unknown[] = [];
+  const replies: Record<string, unknown>[] = [];
+  const logs: string[] = [];
+  const exported: { handler?: (event: unknown) => Promise<void> } = {};
+  class Command {
+    constructor(public readonly input: unknown) {}
+  }
+  class Client {
+    async send(command: Command) {
+      writes.push(command.input);
+    }
+  }
+  runInNewContext(SPAN_RETENTION_HANDLER, {
+    exports: exported,
+    require: () => ({
+      CloudWatchLogsClient: Client,
+      PutRetentionPolicyCommand: Command,
+    }),
+    URL,
+    AbortSignal,
+    Buffer,
+    console: { error: (value: string) => logs.push(value) },
+    fetch: async (_url: URL, options: { body: string }) => {
+      replies.push(JSON.parse(options.body));
+      return { ok: true };
+    },
+  });
+  const base = {
+    RequestType: "Create",
+    ResponseURL:
+      "https://cloudformation-custom-resource-response-useast1.s3.amazonaws.com/unit?X-Amz-Signature=unit-private-marker",
+    StackId: "unit",
+    RequestId: "unit",
+    LogicalResourceId: "unit",
+  };
+  await exported.handler!({
+    ...base,
+    ResourceProperties: { LogGroupName: "aws/spans", RetentionInDays: 30 },
+  });
+  await exported.handler!({
+    ...base,
+    ResourceProperties: { LogGroupName: "another-tenant", RetentionInDays: 30 },
+  });
+  ok(
+    writes.length === 1 &&
+      replies[0].Status === "SUCCESS" &&
+      replies[1].Status === "FAILED",
+  );
+  ok(replies.every((reply) => reply.NoEcho === true));
+  ok(!JSON.stringify(logs).includes("unit-private-marker"));
+});
+
+test("CellObservability owns encrypted retained trace storage and account-scoped X-Ray delivery", () => {
+  const app = new App();
+  const stack = new CellObservability(app, "Observability", {
+    stage: "dev",
+    tenant: "a",
+    env: { account: "111111111111", region: "us-east-1" },
+  });
+  Validations.of(app).addPlugins(new AwsSolutionsChecks(app));
+  const template = Template.fromStack(stack);
+  template.resourceCountIs("AWS::EC2::NatGateway", 0);
+  template.resourceCountIs("AWS::EC2::VPCEndpoint", 0);
+  template.hasResourceProperties("AWS::XRay::TransactionSearchConfig", {
+    IndexingPercentage: 1,
+    CloudWatchLogsConfiguration: { SpansLogGroupKmsKeyId: Match.anyValue() },
+  });
+  template.hasResourceProperties("AWS::Logs::LogGroup", {
+    LogGroupName: "/aws/application-signals/data",
+    KmsKeyId: Match.anyValue(),
+    RetentionInDays: 30,
+  });
+  const policy = Object.values(
+    template.findResources("AWS::Logs::ResourcePolicy"),
+  )[0].Properties.PolicyDocument;
+  ok(
+    JSON.stringify(policy).includes("aws:SourceAccount") &&
+      JSON.stringify(policy).includes("aws:SourceArn"),
+  );
+  app.synth();
+});
 
 test("Synthea uses a bounded on-demand private task and immutable image", () => {
   const app = new App();
@@ -171,9 +257,21 @@ test("Worklist database is private, encrypted and can auto-pause, and routes req
       issuer: "https://example.invalid",
       clientId: "test-client",
       tenantId: "fe54cd8b-3dac-43d3-9a30-1f588cb60d35",
+      traceExport: true,
+      fhirExpiresAt: "2020-01-01T00:00:00Z",
     }),
   );
   template.resourceCountIs("AWS::EC2::NatGateway", 0);
+  template.hasResourceProperties("AWS::Lambda::Function", {
+    Handler: "app.main.handler",
+    Environment: {
+      Variables: Match.objectLike({
+        VERIMED_TRACE_EXPORTER: "aws",
+        FHIR_EXPIRES_AT: "2020-01-01T00:00:00Z",
+        FHIR_ENDPOINT: Match.absent(),
+      }),
+    },
+  });
   template.hasResourceProperties("AWS::RDS::DBCluster", {
     StorageEncrypted: true,
     EnableHttpEndpoint: true,
