@@ -30,7 +30,17 @@ jobs:
         run: ./gradlew --no-daemon --max-workers=2 -Dorg.gradle.jvmargs=-Xmx2g -I ../../services/simulator/container/security-overrides.gradle shadowJar
       - name: Scan candidate JAR without weakening the security gate
         run: |
-          docker run --rm -v "$PWD/.build-synthea/source/build/libs:/scan:ro" -v "$PWD/.build-synthea:/reports" aquasec/trivy:0.76.2 fs --scanners vuln --severity HIGH,CRITICAL --format json --output /reports/candidate-scan.json --exit-code 1 /scan
+          printf 'FROM scratch\nCOPY synthea-with-dependencies.jar /opt/synthea.jar\n' > .build-synthea/source/build/libs/scan.Dockerfile
+          docker build -f .build-synthea/source/build/libs/scan.Dockerfile -t synthea-security:candidate .build-synthea/source/build/libs
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$PWD/.build-synthea:/reports" aquasec/trivy:0.76.2 image --scanners vuln --severity HIGH,CRITICAL --list-all-pkgs --format json --output /reports/candidate-scan.json --exit-code 1 synthea-security:candidate
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path('.build-synthea/candidate-scan.json').read_text())
+          packages = [p for result in report.get('Results', []) if result.get('Type') == 'jar' for p in result.get('Packages', [])]
+          assert len(packages) >= 100, 'Embedded Java inventory is missing or incomplete'
+          print(f'Inventoried {len(packages)} embedded Java packages')
+          PY
       - name: Generate a real patient without network access
         working-directory: .build-synthea/source
         run: |
