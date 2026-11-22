@@ -42,6 +42,8 @@ def main() -> None:
             "The structured response did not contain the expected value."
         )
 
+    # Loopback-only spike proxy; no production or remote HTTP transport is permitted here.
+    # nosemgrep: python.lang.security.audit.insecure-transport.urllib.insecure-request-object.insecure-request-object
     request = Request(
         f"{endpoint}/chat/completions",
         data=json.dumps(
@@ -58,6 +60,8 @@ def main() -> None:
         method="POST",
     )
     try:
+        # This request can reach only the literal 127.0.0.1 proxy above.
+        # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
         with urlopen(request, timeout=30):
             raise RuntimeError("The guardrail sentinel was not blocked.")
     except HTTPError as error:

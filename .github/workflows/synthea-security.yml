@@ -5,6 +5,7 @@ on:
     paths:
       - .github/workflows/synthea-security.yml
       - services/simulator/container/security-overrides.gradle
+      - services/simulator/container/patch_source.py
 permissions:
   contents: read
 jobs:
@@ -23,6 +24,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
+      - run: python services/simulator/container/patch_source.py .build-synthea/source
       - name: Build pinned source with fixed dependencies
         working-directory: .build-synthea/source
         run: ./gradlew --no-daemon --max-workers=2 -Dorg.gradle.jvmargs=-Xmx2g -I ../../services/simulator/container/security-overrides.gradle shadowJar

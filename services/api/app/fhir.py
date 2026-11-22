@@ -2,13 +2,12 @@
 
 import base64
 import hashlib
-import json
 import os
 from typing import Any
 from urllib.parse import parse_qsl, quote, urlencode, urlsplit, urlunsplit
-from urllib.request import Request, urlopen
 
 import boto3  # type: ignore[import-untyped]
+import requests
 from botocore.auth import SigV4Auth  # type: ignore[import-untyped]
 from botocore.awsrequest import AWSRequest  # type: ignore[import-untyped]
 from pydantic import BaseModel
@@ -32,6 +31,16 @@ class PatientPage(BaseModel):
 def read_patients(cursor: str | None = None) -> PatientPage:
     base = os.environ["FHIR_ENDPOINT"].rstrip("/") + "/"
     expected = urlsplit(base + "Patient")
+    region = os.environ.get("AWS_REGION", "us-east-1")
+    if (
+        expected.scheme != "https"
+        or expected.netloc != f"healthlake.{region}.amazonaws.com"
+        or not expected.path.startswith("/datastore/")
+        or not expected.path.endswith("/r4/Patient")
+        or expected.query
+        or expected.fragment
+    ):
+        raise ValueError("FHIR endpoint must be the regional HTTPS HealthLake store")
     if cursor:
         url = base64.urlsafe_b64decode(cursor + "=" * (-len(cursor) % 4)).decode()
         parsed = urlsplit(url)
@@ -67,10 +76,17 @@ def read_patients(cursor: str | None = None) -> PatientPage:
         "healthlake",
         os.environ.get("AWS_REGION", "us-east-1"),
     ).add_auth(request)
-    with urlopen(
-        Request(url, headers=dict(request.headers.items())), timeout=20
-    ) as response:
-        bundle: dict[str, Any] = json.load(response)
+    with requests.Session() as transport:
+        transport.trust_env = False
+        response = transport.get(
+            url,
+            headers=dict(request.headers.items()),
+            timeout=20,
+            allow_redirects=False,
+        )
+        if response.status_code != 200:
+            raise RuntimeError("FHIR search request failed")
+        bundle: dict[str, Any] = response.json()
     if bundle.get("resourceType") != "Bundle":
         raise ValueError("The FHIR server did not return a search bundle")
     items = []

@@ -39,12 +39,16 @@ def main() -> None:
     print("Estimated AWS spend for local HAPI leg: $0.")
     started = time.monotonic()
     for raw, entry_count, response_type in [*support, *bundles]:
+        # Dedicated local benchmark server, fixed loopback address; synthetic resources only.
+        # nosemgrep: python.lang.security.audit.insecure-transport.urllib.insecure-request-object.insecure-request-object
         request = Request(
             "http://127.0.0.1:8080/fhir",
             data=raw,
             headers={"Content-Type": "application/fhir+json"},
             method="POST",
         )
+        # Fixed loopback request above; no URL input is accepted by this benchmark.
+        # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
         with urlopen(request, timeout=args.request_timeout) as response:
             result = json.load(response)
         responses = result.get("entry", [])
@@ -58,6 +62,8 @@ def main() -> None:
         ):
             raise RuntimeError("HAPI did not confirm the complete FHIR transaction")
     elapsed = time.monotonic() - started
+    # Fixed loopback-only synthetic benchmark query, never used by the product.
+    # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected, python.lang.security.audit.insecure-transport.urllib.insecure-urlopen.insecure-urlopen
     with urlopen(
         "http://127.0.0.1:8080/fhir/Patient?_summary=count", timeout=30
     ) as response:

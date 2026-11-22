@@ -25,6 +25,8 @@ def prepare(jar: Path | None) -> None:
         shutil.copyfile(jar, artifact)
     elif not artifact.exists():
         with (
+            # Fixed upstream HTTPS release URL; the downloaded bytes must match SYNTHEA_SHA256 below.
+            # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
             urllib.request.urlopen(URL, timeout=120) as response,
             artifact.open("xb") as output,
         ):

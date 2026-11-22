@@ -29,6 +29,8 @@ def main() -> None:
         if bearer:
             headers["Authorization"] = f"Bearer {bearer}"
         request = Request(url, data=data, headers=headers, method="POST")
+        # Host is a literal regional AWS HTTPS endpoint; only the quoted validated ARN varies.
+        # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
         with urlopen(request, timeout=90) as response:
             return bytes(response.read())
 

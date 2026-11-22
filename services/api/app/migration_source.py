@@ -48,6 +48,8 @@ def alembic_upgrade(revision: str) -> None:
     digest = checksum(revision)
     for statement in METADATA:
         op.execute(statement)
+    # checksum() accepts only REVISIONS and produces a hex digest; this offline DDL has no external input.
+    # nosemgrep: python.lang.security.audit.formatted-sql-query.formatted-sql-query, python.sqlalchemy.security.sqlalchemy-execute-raw-query.sqlalchemy-execute-raw-query
     op.execute(f"""DO $$ BEGIN
 IF EXISTS (SELECT 1 FROM platform_meta.applied_revisions
            WHERE revision='{revision}' AND sha256<>'{digest}') THEN
@@ -56,5 +58,7 @@ END IF;
 END $$""")
     for statement in statements(revision + ".sql"):
         op.execute(statement)
+    # Same finite revision allowlist and hex digest as above; Alembic offline SQL must contain literals.
+    # nosemgrep: python.lang.security.audit.formatted-sql-query.formatted-sql-query, python.sqlalchemy.security.sqlalchemy-execute-raw-query.sqlalchemy-execute-raw-query
     op.execute(f"""INSERT INTO platform_meta.applied_revisions(revision,sha256)
 VALUES ('{revision}','{digest}') ON CONFLICT (revision) DO NOTHING""")
