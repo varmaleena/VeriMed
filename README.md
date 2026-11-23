@@ -1,6 +1,6 @@
 # ChartVigil / VeriMed
 
-The workspace contains the deployed dev foundations and an in-progress Phase 1 platform. See docs/IMPLEMENTATION_STATUS.md and docs/BLOCKERS.md for exact acceptance gaps. HIPAA-aligned design, synthetic data only. Install GNU Make, Node.js 24, pnpm at the version in package.json, uv, Git, and Docker with Compose v2. Copy .env.example to .env and set fresh local PostgreSQL and MinIO credentials. Run with synthetic data only.
+The workspace contains the deployed dev foundations and an in-progress Phase 1 platform. See docs/IMPLEMENTATION_STATUS.md and docs/BLOCKERS.md for exact acceptance gaps. HIPAA-aligned design, synthetic data only. Install GNU Make, Node.js 24, pnpm at the version in package.json, uv, Git, and Docker with Compose v2. Bootstrap generates fresh local PostgreSQL and MinIO credentials in ignored .env without printing them, and preserves existing nonempty values. Run with synthetic data only.
 
 ```sh
 make bootstrap

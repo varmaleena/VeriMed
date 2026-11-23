@@ -6,6 +6,7 @@ import { CellFhirDemo } from "./cell-fhir-demo";
 import { CellFhirImport } from "./cell-fhir-import";
 import { CellSynthea } from "./cell-synthea";
 import { CellObservability } from "./cell-observability";
+import { CellWeb, CellWebAssets } from "./cell-web";
 import { Bucket } from "aws-cdk-lib/aws-s3";
 import { Key } from "aws-cdk-lib/aws-kms";
 import { CellLedger } from "./cell-ledger";
@@ -22,6 +23,35 @@ const app = new App();
 const stage: string = app.node.tryGetContext("env") ?? "dev";
 const tenant: string = app.node.tryGetContext("cell") ?? "a";
 const region = process.env.AWS_REGION ?? "us-east-1";
+if (app.node.tryGetContext("cellWebAssets") === "true") {
+  new CellWebAssets(app, "CellWebAssets", {
+    stage,
+    tenant,
+    env: { region, account: process.env.VERIMED_CELL_ACCOUNT },
+  });
+}
+if (app.node.tryGetContext("cellWeb") === "true") {
+  const required = (name: string): string => {
+    const value = process.env[name];
+    if (!value) throw new Error(`${name} is required for hosted web`);
+    return value;
+  };
+  new CellWeb(app, "CellWeb", {
+    stage,
+    tenant,
+    bucket: required("VERIMED_WEB_CODE_BUCKET"),
+    objectKey: required("VERIMED_WEB_CODE_KEY"),
+    objectVersion: required("VERIMED_WEB_CODE_VERSION"),
+    keyArn: required("VERIMED_WEB_KEY_ARN"),
+    authSecretArn: required("WEB_AUTH_SECRET_ARN"),
+    userPoolId: required("COGNITO_USER_POOL_ID"),
+    clientId: required("AUTH_COGNITO_ID"),
+    issuer: required("AUTH_COGNITO_ISSUER"),
+    apiUrl: required("CELL_API_URL"),
+    publicOrigin: required("VERIMED_WEB_ORIGIN"),
+    env: { region, account: process.env.VERIMED_CELL_ACCOUNT },
+  });
+}
 const observability =
   app.node.tryGetContext("cellObservability") === "true"
     ? new CellObservability(app, "CellObservability", {

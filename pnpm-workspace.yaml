@@ -2,3 +2,11 @@ packages:
   - apps/*
   - packages/*
   - infra/cdk
+blockExoticSubdeps: true
+minimumReleaseAge: 10080
+trustPolicy: no-downgrade
+
+# Owner approved this exact Auth.js v5 provenance exception on November 23.
+# Official release commit: e293b3746616660f0844347a68d09eac54b95c6f.
+trustPolicyExclude:
+  - next-auth@5.0.0-beta.32

@@ -64,3 +64,7 @@ the registry-verified SDK line. Development typing uses types-requests 2.33.0.20
 The live SRP probe uses development-only pycognito 2024.5.1; its registry metadata and
 client-secret/SRP implementation were checked on November 22. It is excluded from API bundles.
 The pinned pnpm 12.21.0 bootstrap metadata was restored in the lockfile; frozen installation passed.
+
+Hosted web uses AWS SDK Cognito Identity Provider and Secrets Manager 3.1169.0. Their November 13
+publication was verified in npm metadata; this eligible stable release preserves the seven-day age gate.
+The owner's exact Auth.js v5 provenance exception and official source reference are recorded in ADR 026.

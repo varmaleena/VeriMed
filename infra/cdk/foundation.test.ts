@@ -13,11 +13,69 @@ import { CellFhirDemo } from "./cell-fhir-demo";
 import { CellFhirImport } from "./cell-fhir-import";
 import { CellSynthea } from "./cell-synthea";
 import { CellObservability } from "./cell-observability";
+import { CellWeb, CellWebAssets } from "./cell-web";
 import { SPAN_RETENTION_HANDLER } from "./span-retention-handler";
 import { runInNewContext } from "node:vm";
 import { Bucket } from "aws-cdk-lib/aws-s3";
 import { Key } from "aws-cdk-lib/aws-kms";
 import { CellLedger } from "./cell-ledger";
+
+test("Managed dev web requires IAM origin auth, WAF, no clinical caching, bounded scale and secret-role access", () => {
+  const app = new App();
+  new CellWebAssets(app, "WebAssets", {
+    stage: "dev",
+    tenant: "a",
+    env: { account: "111111111111", region: "us-east-1" },
+  });
+  const stack = new CellWeb(app, "Web", {
+    stage: "dev",
+    tenant: "a",
+    env: { account: "111111111111", region: "us-east-1" },
+    bucket: "unit-code-bucket",
+    objectKey: "revisions/unit.zip",
+    objectVersion: "unit-version",
+    keyArn:
+      "arn:aws:kms:us-east-1:111111111111:key/00000000-0000-0000-0000-000000000001",
+    authSecretArn:
+      "arn:aws:secretsmanager:us-east-1:111111111111:secret:unit-abcdef",
+    userPoolId: "us-east-1_unit",
+    clientId: "unit-client",
+    issuer: "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_unit",
+    apiUrl: "https://unit.execute-api.us-east-1.amazonaws.com/v1",
+    publicOrigin: "https://unit.cloudfront.net",
+  });
+  Validations.of(app).addPlugins(new AwsSolutionsChecks(app));
+  const template = Template.fromStack(stack);
+  template.hasResourceProperties("AWS::Lambda::WebFunctionEndpoint", {
+    AuthType: "IamAuth",
+    EndpointType: "HomeRegion",
+    ScalingConfig: { MaxEnvironments: 2 },
+  });
+  template.hasResourceProperties("AWS::Lambda::WebFunctionRevision", {
+    KmsKeyArn: Match.anyValue(),
+    ServiceConfig: {
+      ExecutionRoleArn: Match.anyValue(),
+      MaxConcurrencyPerEnvironment: 8,
+      TimeoutSeconds: 40,
+      EnvironmentVariables: Match.not(
+        Match.objectLike({ AUTH_SECRET: Match.anyValue() }),
+      ),
+      TelemetryConfig: Match.anyValue(),
+    },
+  });
+  template.hasResourceProperties("AWS::CloudFront::OriginAccessControl", {
+    OriginAccessControlConfig: Match.objectLike({
+      SigningBehavior: "always",
+      OriginAccessControlOriginType: "lambda",
+    }),
+  });
+  template.hasResourceProperties("AWS::WAFv2::WebACL", {
+    Scope: "CLOUDFRONT",
+    VisibilityConfig: Match.objectLike({ SampledRequestsEnabled: false }),
+  });
+  template.resourceCountIs("AWS::EC2::NatGateway", 0);
+  app.synth();
+});
 
 test("Trace retention helper rejects other groups and never logs signed CFN callbacks", async () => {
   const writes: unknown[] = [];

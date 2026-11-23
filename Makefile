@@ -5,9 +5,11 @@ CELL ?= a
 
 bootstrap:
 	uv sync --all-packages --locked
+	uv run python scripts/bootstrap_local.py
 	pnpm install --frozen-lockfile
 	uv run pre-commit install
 	docker compose up -d --build --wait
+	uv run python scripts/bootstrap_local.py --check-services
 
 dev:
 	pnpm --filter @verimed/web dev --hostname 127.0.0.1

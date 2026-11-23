@@ -49,7 +49,7 @@ jobs:
         working-directory: .build-synthea/source
         run: |
           mkdir -p /tmp/synthea-candidate
-          sudo unshare --net -- env PATH="$PATH" timeout 10m java -Xmx1024m -jar build/libs/synthea-with-dependencies.jar -p 1 --exporter.baseDirectory=/tmp/synthea-candidate --exporter.fhir.export=true --exporter.fhir.transaction_bundle=true > /tmp/synthea-candidate/generation.log 2>&1
+          sudo unshare --net -- env PATH="$PATH" timeout 10m java -Xmx1024m -jar build/libs/synthea-with-dependencies.jar -p 1 --generate.only_alive_patients=true --exporter.baseDirectory=/tmp/synthea-candidate --exporter.fhir.export=true --exporter.fhir.transaction_bundle=true > /tmp/synthea-candidate/generation.log 2>&1
           python - <<'PY'
           import json
           from pathlib import Path
@@ -60,6 +60,10 @@ jobs:
                   resource = entry.get('resource', {})
                   if resource.get('resourceType') == 'Patient':
                       patients.add(resource['id'])
+          import re
+          log = Path('/tmp/synthea-candidate/generation.log').read_text(errors='replace')
+          print('FHIR patient count:', len(patients))
+          print('Generation exception classes:', sorted(set(re.findall(r'[\w.]+(?:Exception|Error)', log))))
           assert len(patients) == 1, 'Real FHIR generation failed'
           print('Real FHIR patient generation passed')
           PY
