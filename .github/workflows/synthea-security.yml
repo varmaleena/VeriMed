@@ -98,7 +98,17 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           gh run download "$GITHUB_RUN_ID" --name synthea-security-candidate --dir candidate
-          cd candidate
+          python - <<'PY'
+          import shutil
+          from pathlib import Path
+          destination = Path('release')
+          destination.mkdir()
+          for name in ('synthea-with-dependencies.jar', 'synthea.sha256', 'candidate-scan.json'):
+              matches = list(Path('candidate').rglob(name))
+              assert len(matches) == 1, 'Ambiguous candidate artifact layout'
+              shutil.copyfile(matches[0], destination / name)
+          PY
+          cd release
           sha256sum --check synthea.sha256
           python - <<'PY'
           import json
