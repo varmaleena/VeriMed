@@ -15,9 +15,11 @@ allprojects {
         'org.apache.commons:commons-text': '1.15.0',
         'org.fhir:ucum': '1.0.10',
         'org.yaml:snakeyaml': '2.7'
+        ,'org.apache.httpcomponents.core5:httpcore5': '5.4.3'
+        ,'org.apache.httpcomponents.core5:httpcore5-h2': '5.4.3'
       ]
       if (group == 'ca.uhn.hapi.fhir' && name.startsWith('org.hl7.fhir.')) {
-        details.useVersion('6.9.10')
+        details.useVersion('6.9.12')
       } else if (group == 'com.fasterxml.jackson.core' && name == 'jackson-annotations') {
         // Jackson 2.23 annotations use a minor-only version; follow the library BOM.
         details.useVersion('2.23')
