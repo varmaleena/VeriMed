@@ -249,6 +249,8 @@ export class CellWeb extends Stack {
         environmentVariables: {
           AWS_LAMBDA_NODEJS_ENTRYPOINT: "index.cjs",
           VERIMED_HOSTED_WEB: "true",
+          VERIMED_TENANT_NAME: `Tenant ${props.tenant}`,
+          VERIMED_ENV: props.stage,
           WEB_AUTH_SECRET_ARN: props.authSecretArn,
           COGNITO_USER_POOL_ID: props.userPoolId,
           AUTH_COGNITO_ID: props.clientId,

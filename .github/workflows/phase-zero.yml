@@ -128,3 +128,32 @@ jobs:
       - run: docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.30.1 git /repo --redact
       - run: docker run --rm -v "$PWD:/repo" aquasec/trivy:0.76.2 fs --scanners vuln,misconfig,secret --severity HIGH,CRITICAL --exit-code 1 /repo
       - run: docker run --rm -v "$PWD:/src" semgrep/semgrep:1.185.0 semgrep scan --config p/default --error /src
+  clean-bootstrap-and-hapi:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: "0.13.8"
+          python-version: "3.12"
+      - name: Verify the exact clean-clone acceptance commands
+        run: make bootstrap && make test
+      - run: uv run --all-packages python services/simulator/prepare_image.py
+      - name: Generate fifty real patients with the security rebuild
+        run: uv run --all-packages python services/simulator/run_synthea.py --jar .build-synthea/synthea.jar --output .phase1-fhir/hapi-cohort --population 50
+      - run: uv run python spikes/s4_prepare_synthea.py .phase1-fhir/hapi-cohort/fhir .phase1-fhir/hapi-benchmark
+      - name: Measure the complete PostgreSQL-backed HAPI import
+        run: uv run python spikes/s4_hapi_import.py .phase1-fhir/hapi-benchmark/hapi --request-timeout 600 --output docs/spikes/s4-hapi.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: hapi-benchmark-metadata
+          path: docs/spikes/s4-hapi.json
+          retention-days: 3
+      - name: Remove only this job's local service data
+        if: always()
+        run: docker compose down --volumes --remove-orphans
