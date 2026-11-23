@@ -34,7 +34,6 @@ import {
   OriginRequestPolicy,
   OriginSslPolicy,
   ResponseHeadersPolicy,
-  SecurityPolicyProtocol,
   ViewerProtocolPolicy,
 } from "aws-cdk-lib/aws-cloudfront";
 import { HttpOrigin } from "aws-cdk-lib/aws-cloudfront-origins";
@@ -281,7 +280,7 @@ export class CellWeb extends Stack {
       originAccessControlConfig: {
         name: `${this.stackName}-web`,
         originAccessControlOriginType: "lambda",
-        signingBehavior: "always",
+        signingBehavior: "always-amz-auth",
         signingProtocol: "sigv4",
       },
     });
@@ -320,7 +319,6 @@ export class CellWeb extends Stack {
     });
     const distribution = new Distribution(this, "Distribution", {
       webAclId: acl.attrArn,
-      minimumProtocolVersion: SecurityPolicyProtocol.TLS_V1_2_2021,
       defaultBehavior: {
         origin: new HttpOrigin(endpoint.attrDomainName, {
           protocolPolicy: OriginProtocolPolicy.HTTPS_ONLY,

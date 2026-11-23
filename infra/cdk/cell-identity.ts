@@ -18,11 +18,23 @@ import { Construct } from "constructs";
 
 interface CellIdentityProps extends StackProps {
   demoWithoutMfa?: boolean;
+  hostedOrigin?: string;
 }
 
 export class CellIdentity extends Stack {
   constructor(scope: Construct, id: string, props: CellIdentityProps) {
     super(scope, id, props);
+    if (props.hostedOrigin) {
+      const origin = new URL(props.hostedOrigin);
+      if (
+        origin.protocol !== "https:" ||
+        origin.origin !== props.hostedOrigin ||
+        !origin.hostname.endsWith(".cloudfront.net")
+      )
+        throw new Error(
+          "The hosted callback must be a fixed AWS-managed CloudFront HTTPS origin",
+        );
+    }
     const pool = new UserPool(this, "Users", {
       selfSignUpEnabled: false,
       signInAliases: { email: true },
@@ -62,8 +74,16 @@ export class CellIdentity extends Stack {
       oAuth: {
         flows: { authorizationCodeGrant: true },
         scopes: [OAuthScope.OPENID, OAuthScope.PROFILE],
-        callbackUrls: ["http://localhost:3000/api/auth/callback/cognito"],
-        logoutUrls: ["http://localhost:3000/login"],
+        callbackUrls: [
+          "http://localhost:3000/api/auth/callback/cognito",
+          ...(props.hostedOrigin
+            ? [`${props.hostedOrigin}/api/auth/callback/cognito`]
+            : []),
+        ],
+        logoutUrls: [
+          "http://localhost:3000/login",
+          ...(props.hostedOrigin ? [`${props.hostedOrigin}/login`] : []),
+        ],
       },
     });
     const domain = pool.addDomain("LoginDomain", {

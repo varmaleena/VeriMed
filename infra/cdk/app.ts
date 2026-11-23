@@ -7,6 +7,7 @@ import { CellFhirImport } from "./cell-fhir-import";
 import { CellSynthea } from "./cell-synthea";
 import { CellObservability } from "./cell-observability";
 import { CellWeb, CellWebAssets } from "./cell-web";
+import { GitHubDeploy } from "./github-deploy";
 import { Bucket } from "aws-cdk-lib/aws-s3";
 import { Key } from "aws-cdk-lib/aws-kms";
 import { CellLedger } from "./cell-ledger";
@@ -23,6 +24,20 @@ const app = new App();
 const stage: string = app.node.tryGetContext("env") ?? "dev";
 const tenant: string = app.node.tryGetContext("cell") ?? "a";
 const region = process.env.AWS_REGION ?? "us-east-1";
+if (app.node.tryGetContext("githubDeploy") === "true") {
+  const repository = process.env.VERIMED_GITHUB_REPOSITORY;
+  const ownerId = process.env.VERIMED_GITHUB_OWNER_ID;
+  const repositoryId = process.env.VERIMED_GITHUB_REPOSITORY_ID;
+  if (!repository || !ownerId || !repositoryId)
+    throw new Error("VERIMED_GITHUB_REPOSITORY is required for OIDC trust");
+  new GitHubDeploy(app, "GitHubDeploy", {
+    repository,
+    ownerId,
+    repositoryId,
+    qualifier: "hnb659fds",
+    env: { region, account: process.env.VERIMED_CELL_ACCOUNT },
+  });
+}
 if (app.node.tryGetContext("cellWebAssets") === "true") {
   new CellWebAssets(app, "CellWebAssets", {
     stage,
@@ -172,6 +187,7 @@ if (app.node.tryGetContext("cellWorklist") === "true") {
 }
 if (app.node.tryGetContext("cellIdentity") === "true") {
   new CellIdentity(app, "CellIdentity", {
+    hostedOrigin: process.env.VERIMED_WEB_ORIGIN,
     demoWithoutMfa: app.node.tryGetContext("demoWithoutMfa") === "true",
     env: { region, account: process.env.VERIMED_CELL_ACCOUNT },
   });

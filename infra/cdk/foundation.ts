@@ -111,6 +111,11 @@ export class Foundation extends Stack {
       },
     );
     this.endpointSecurityGroup = endpointSecurityGroup;
+    // Keep the same CDK-generated exports even when an optional consumer stack is not synthesized.
+    // Removing these exports would break independent foundation deployment while CellSynthea uses them.
+    this.exportValue(vpc.vpcId);
+    this.exportValue(endpointSecurityGroup.securityGroupId);
+    for (const subnet of vpc.isolatedSubnets) this.exportValue(subnet.subnetId);
     for (const [name, service] of Object.entries(endpoints)) {
       vpc.addInterfaceEndpoint(name, {
         service,

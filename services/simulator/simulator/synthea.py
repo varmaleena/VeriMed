@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 from uuid import NAMESPACE_URL, uuid4, uuid5
 
-SYNTHEA_SHA256 = "ed43c20ad40ba5c3bc724503a5af032715fe3c491620b766148e7c2361e6ecc1"
+SYNTHEA_SHA256 = "33b36f37163db67d36fb5ff515027fee666933ddad2a37628708abcec4f8005b"
 
 
 def generate(jar: Path, output: Path, population: int = 50) -> Path:
@@ -17,7 +17,7 @@ def generate(jar: Path, output: Path, population: int = 50) -> Path:
         raise ValueError("Synthetic population must be between 1 and 50")
     with jar.open("rb") as stream:
         if hashlib.file_digest(stream, "sha256").hexdigest() != SYNTHEA_SHA256:
-            raise ValueError("Synthea JAR does not match the verified v4 release")
+            raise ValueError("Synthea JAR does not match the verified security rebuild")
     output.mkdir(parents=True, exist_ok=False)
     seed, clinician_seed = secrets.randbits(63), secrets.randbits(63)
     reference_date = datetime.now(UTC).strftime("%Y%m%d")
@@ -28,6 +28,7 @@ def generate(jar: Path, output: Path, population: int = 50) -> Path:
         str(jar.resolve()),
         "-p",
         str(population),
+        "--generate.only_alive_patients=true",
         "-s",
         str(seed),
         "-cs",
@@ -57,7 +58,7 @@ def generate(jar: Path, output: Path, population: int = 50) -> Path:
     (output / "generation.json").write_text(
         json.dumps(
             {
-                "generator": "Synthea v4.0.0",
+                "generator": "Synthea v4.0.0 security.1",
                 "jar_sha256": SYNTHEA_SHA256,
                 "seed": seed,
                 "clinician_seed": clinician_seed,

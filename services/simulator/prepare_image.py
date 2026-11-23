@@ -10,7 +10,7 @@ from uuid import uuid4
 
 from simulator.synthea import SYNTHEA_SHA256
 
-URL = "https://github.com/synthetichealth/synthea/releases/download/v4.0.0/synthea-with-dependencies.jar"
+URL = "https://github.com/varmaleena/VeriMed/releases/download/synthea-4.0.0-security.1/synthea-with-dependencies.jar"
 
 
 def prepare(jar: Path | None) -> None:

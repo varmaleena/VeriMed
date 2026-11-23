@@ -9,7 +9,7 @@ ENV JAVA_HOME=/opt/java/openjdk PATH="/opt/java/openjdk/bin:${PATH}" \
 COPY .build-synthea/requirements.txt /opt/requirements.txt
 RUN pip install --no-cache-dir --require-hashes --only-binary=:all: --no-deps -r /opt/requirements.txt
 COPY .build-synthea/synthea.jar /opt/synthea.jar
-RUN echo 'ed43c20ad40ba5c3bc724503a5af032715fe3c491620b766148e7c2361e6ecc1  /opt/synthea.jar' | sha256sum -c - \
+RUN echo '33b36f37163db67d36fb5ff515027fee666933ddad2a37628708abcec4f8005b  /opt/synthea.jar' | sha256sum -c - \
     && mkdir /work && chown 10001:10001 /work
 COPY services/simulator/simulator /app/simulator
 USER 10001:10001

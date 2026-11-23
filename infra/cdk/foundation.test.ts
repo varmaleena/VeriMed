@@ -14,11 +14,45 @@ import { CellFhirImport } from "./cell-fhir-import";
 import { CellSynthea } from "./cell-synthea";
 import { CellObservability } from "./cell-observability";
 import { CellWeb, CellWebAssets } from "./cell-web";
+import { GitHubDeploy } from "./github-deploy";
 import { SPAN_RETENTION_HANDLER } from "./span-retention-handler";
 import { runInNewContext } from "node:vm";
 import { Bucket } from "aws-cdk-lib/aws-s3";
 import { Key } from "aws-cdk-lib/aws-kms";
 import { CellLedger } from "./cell-ledger";
+
+test("GitHub federation accepts only the specified repository dev environment and STS audience", () => {
+  const app = new App();
+  const stack = new GitHubDeploy(app, "Federation", {
+    repository: "unit/project",
+    ownerId: "123",
+    repositoryId: "456",
+    qualifier: "hnb659fds",
+    env: { region: "us-east-1", account: "111111111111" },
+  });
+  const template = Template.fromStack(stack);
+  template.hasResourceProperties("AWS::IAM::Role", {
+    AssumeRolePolicyDocument: Match.objectLike({
+      Statement: Match.arrayWith([
+        Match.objectLike({
+          Action: "sts:AssumeRoleWithWebIdentity",
+          Condition: {
+            StringEquals: {
+              "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+              "token.actions.githubusercontent.com:sub":
+                "repo:unit@123/project@456:environment:dev",
+            },
+          },
+        }),
+      ]),
+    }),
+  });
+  const statements = JSON.stringify(template.findResources("AWS::IAM::Policy"));
+  ok(
+    !statements.includes("AdministratorAccess") &&
+      !statements.includes("secretsmanager:GetSecretValue"),
+  );
+});
 
 test("Managed dev web requires IAM origin auth, WAF, no clinical caching, bounded scale and secret-role access", () => {
   const app = new App();
@@ -65,7 +99,7 @@ test("Managed dev web requires IAM origin auth, WAF, no clinical caching, bounde
   });
   template.hasResourceProperties("AWS::CloudFront::OriginAccessControl", {
     OriginAccessControlConfig: Match.objectLike({
-      SigningBehavior: "always",
+      SigningBehavior: "always-amz-auth",
       OriginAccessControlOriginType: "lambda",
     }),
   });
