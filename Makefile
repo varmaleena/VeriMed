@@ -44,7 +44,7 @@ synth:
 	pnpm --filter @verimed/cdk exec cdk synth HubFoundation CellFoundation
 
 deploy:
-	pnpm --filter @verimed/cdk exec cdk deploy HubFoundation CellFoundation -c env=$(ENV) -c cell=$(CELL)
+	uv run --all-packages python services/api/manage_foundation.py deploy --env $(ENV) --cell $(CELL)
 
 destroy:
-	pnpm --filter @verimed/cdk exec cdk destroy CellFoundation -c env=$(ENV) -c cell=$(CELL)
+	uv run --all-packages python services/api/manage_foundation.py destroy --env $(ENV) --cell $(CELL)
