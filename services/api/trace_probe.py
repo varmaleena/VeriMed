@@ -28,6 +28,7 @@ def inspect_span_names(value: Any, names: set[str]) -> None:
                 and child
                 in {
                     "api.request",
+                    "web.cell.read",
                     "api.encounters.list",
                     "authorization.list_encounters",
                     "database.encounters.list",

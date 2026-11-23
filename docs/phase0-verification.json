@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "commit": "dad1bb88c60b86abde55762e0789e851cdbbb63f",
+  "run_url": "https://github.com/varmaleena/VeriMed/actions/runs/45115299510",
+  "clean_clone_bootstrap_and_test": true,
+  "hapi_patient_count": 50,
+  "hapi_import_seconds": 103.95891458300002,
+  "hosted_oidc_foundation_run": "https://github.com/varmaleena/VeriMed/actions/runs/45115301401",
+  "outstanding_external_setup": [
+    "separate management/hub account access",
+    "notification recipient",
+    "unavailable Bedrock agreements"
+  ]
+}

@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { getToken } from "next-auth/jwt";
 import { requireSession } from "./session";
 import { redirect } from "next/navigation";
+import { startCellRead, flushWebTracing } from "./web-tracing";
 
 export interface Unavailable {
   unavailable: true;
@@ -32,11 +33,21 @@ export async function readCell<T>(
   if (!token || typeof token.accessToken !== "string") redirect("/login");
   const url = new URL(base + "/" + resource);
   url.search = params.toString();
+  const requestHeaders = await headers();
+  const operation = startCellRead(requestHeaders.get("traceparent"));
+  const traceHeaders: Record<string, string> = operation.traceparent
+    ? { traceparent: operation.traceparent }
+    : {};
   const response = await fetch(url, {
-    headers: { Authorization: `Bearer ${token.accessToken}` },
+    headers: { Authorization: `Bearer ${token.accessToken}`, ...traceHeaders },
     cache: "no-store",
     signal: AbortSignal.timeout(28000),
   }).catch(() => null);
+  if (response)
+    operation.span.setAttribute("http.response.status_code", response.status);
+  else operation.span.setStatus({ code: 2 });
+  operation.span.end();
+  await flushWebTracing();
   if (!response) return { unavailable: true };
   if (response.status === 401) redirect("/login");
   if (response.status === 403)

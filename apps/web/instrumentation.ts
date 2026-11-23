@@ -5,5 +5,7 @@ export async function register() {
   ) {
     const { loadHostedIdentity } = await import("./lib/hosted-identity");
     await loadHostedIdentity();
+    const { configureWebTracing } = await import("./lib/web-tracing");
+    configureWebTracing();
   }
 }

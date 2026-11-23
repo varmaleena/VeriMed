@@ -22,6 +22,7 @@ jobs:
       - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @verimed/web typecheck
+      - run: pnpm --filter @verimed/web test
       - run: pnpm --filter @verimed/web build
       - run: python scripts/package_web.py
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

@@ -1,0 +1,124 @@
+{
+  "verified_at": "2026-11-23T04:39:22.592952+00:00",
+  "period": {
+    "Start": "2026-11-01",
+    "End": "2026-11-24"
+  },
+  "source": "AWS Cost Explorer; charges before credits/refunds; estimates can lag",
+  "total_estimated_usd_before_credits": 28.9144,
+  "remaining_credits": "Not available from this usage query; do not substitute Free Tier subset balances",
+  "services": [
+    {
+      "service": "AWS CloudFormation",
+      "estimated_usd_before_credits": 0.0
+    },
+    {
+      "service": "AWS Cost Explorer",
+      "estimated_usd_before_credits": 0.03
+    },
+    {
+      "service": "AWS Glue",
+      "estimated_usd_before_credits": 0.0
+    },
+    {
+      "service": "AWS Key Management Service",
+      "estimated_usd_before_credits": 0.9356580415
+    },
+    {
+      "service": "AWS Lambda",
+      "estimated_usd_before_credits": 0.0
+    },
+    {
+      "service": "AWS Secrets Manager",
+      "estimated_usd_before_credits": 0.1741352296
+    },
+    {
+      "service": "AWS Step Functions",
+      "estimated_usd_before_credits": 0.0
+    },
+    {
+      "service": "Amazon API Gateway",
+      "estimated_usd_before_credits": 2.3e-5
+    },
+    {
+      "service": "Amazon Bedrock",
+      "estimated_usd_before_credits": 0.06331257
+    },
+    {
+      "service": "Amazon Bedrock AgentCore",
+      "estimated_usd_before_credits": 0.0023746078
+    },
+    {
+      "service": "Amazon Cognito",
+      "estimated_usd_before_credits": 0.00225
+    },
+    {
+      "service": "Amazon DynamoDB",
+      "estimated_usd_before_credits": 0.234091375
+    },
+    {
+      "service": "Amazon EC2 Container Registry (ECR)",
+      "estimated_usd_before_credits": 0.001987472
+    },
+    {
+      "service": "EC2 - Other",
+      "estimated_usd_before_credits": 0.4613332872
+    },
+    {
+      "service": "Amazon Elastic Container Service",
+      "estimated_usd_before_credits": 0.0013386112
+    },
+    {
+      "service": "Amazon HealthLake",
+      "estimated_usd_before_credits": 13.23
+    },
+    {
+      "service": "Amazon Polly",
+      "estimated_usd_before_credits": 0.002336
+    },
+    {
+      "service": "Amazon Relational Database Service",
+      "estimated_usd_before_credits": 0.2662129512
+    },
+    {
+      "service": "Amazon Simple Notification Service",
+      "estimated_usd_before_credits": 0.0
+    },
+    {
+      "service": "Amazon Simple Queue Service",
+      "estimated_usd_before_credits": 0.0
+    },
+    {
+      "service": "Amazon Simple Storage Service",
+      "estimated_usd_before_credits": 0.0088511072
+    },
+    {
+      "service": "Amazon Transcribe",
+      "estimated_usd_before_credits": 0.0
+    },
+    {
+      "service": "Amazon Verified Permissions",
+      "estimated_usd_before_credits": 0.00045
+    },
+    {
+      "service": "Amazon Virtual Private Cloud",
+      "estimated_usd_before_credits": 13.500003388
+    },
+    {
+      "service": "AmazonCloudWatch",
+      "estimated_usd_before_credits": 1.16621e-5
+    },
+    {
+      "service": "CloudWatch Events",
+      "estimated_usd_before_credits": 0.0
+    },
+    {
+      "service": "CodeBuild",
+      "estimated_usd_before_credits": 0.0
+    },
+    {
+      "service": "Tax",
+      "estimated_usd_before_credits": 0.0
+    }
+  ]
+}

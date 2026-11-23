@@ -163,6 +163,7 @@ export class CellSynthea extends Stack {
             "ecr:BatchGetImage",
             "ecr:GetDownloadUrlForLayer",
             "ecr:DescribeImageScanFindings",
+            "ecr:DescribeImages",
           ],
           resources: [repository.repositoryArn],
         }),
@@ -214,19 +215,20 @@ export class CellSynthea extends Stack {
                 commands: [
                   "set -eu",
                   'aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "${IMAGE_URI%%/*}"',
+                  'echo 0 > /tmp/image-present; if aws ecr describe-images --repository-name "${IMAGE_URI#*/}" --image-ids "imageTag=$IMAGE_TAG" >/tmp/existing-image.json 2>/tmp/image-lookup-error; then echo 1 > /tmp/image-present; else case "$(cat /tmp/image-lookup-error)" in *ImageNotFoundException*) ;; *) echo ECR_LOOKUP_FAILED; exit 1;; esac; fi',
                 ],
               },
               build: {
                 commands: [
-                  'docker build --platform linux/arm64 -f services/simulator/container/Dockerfile -t "$IMAGE_URI:$IMAGE_TAG" .',
+                  'if [ "$(cat /tmp/image-present)" = 1 ]; then docker pull "$IMAGE_URI:$IMAGE_TAG"; else docker build --platform linux/arm64 -f services/simulator/container/Dockerfile -t "$IMAGE_URI:$IMAGE_TAG" .; fi',
                   'docker run --rm --network none --read-only --memory 2g --cpus 1 --cap-drop ALL --security-opt no-new-privileges --entrypoint timeout "$IMAGE_URI:$IMAGE_TAG" --signal=TERM --kill-after=20s 10m python -m simulator.container_smoke',
                 ],
               },
               post_build: {
                 commands: [
                   'test "$CODEBUILD_BUILD_SUCCEEDING" = 1',
-                  'docker push "$IMAGE_URI:$IMAGE_TAG"',
-                  'aws ecr wait image-scan-complete --repository-name "${IMAGE_URI#*/}" --image-id "imageTag=$IMAGE_TAG"',
+                  'if [ "$(cat /tmp/image-present)" != 1 ]; then docker push "$IMAGE_URI:$IMAGE_TAG"; fi',
+                  'scan_status=PENDING; for attempt in $(seq 1 30); do scan_status=$(aws ecr describe-image-scan-findings --repository-name "${IMAGE_URI#*/}" --image-id "imageTag=$IMAGE_TAG" --query imageScanStatus.status --output text 2>/dev/null || true); case "$scan_status" in COMPLETE) break;; FAILED|UNSUPPORTED_IMAGE|SCAN_ELIGIBILITY_EXPIRED|FINDINGS_UNAVAILABLE|LIMIT_EXCEEDED) echo IMAGE_SCAN_FAILED; exit 1;; esac; sleep 2; done; test "$scan_status" = COMPLETE',
                   'aws ecr describe-image-scan-findings --repository-name "${IMAGE_URI#*/}" --image-id "imageTag=$IMAGE_TAG" --query imageScanFindings.findingSeverityCounts --output json > /tmp/image-scan-counts.json',
                   'python3 -c \'import json,sys; c=json.load(open("/tmp/image-scan-counts.json")); sys.exit(0 if isinstance(c,dict) and c.get("HIGH",0)==0 and c.get("CRITICAL",0)==0 else 1)\'',
                 ],

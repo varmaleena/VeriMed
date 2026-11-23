@@ -38,6 +38,7 @@ lint:
 test:
 	uv run --all-packages pytest
 	pnpm --filter @verimed/cdk test
+	pnpm --filter @verimed/web test
 
 synth:
 	pnpm --filter @verimed/cdk exec cdk synth HubFoundation CellFoundation

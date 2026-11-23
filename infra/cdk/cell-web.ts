@@ -226,6 +226,18 @@ export class CellWeb extends Stack {
       }),
     );
     key.grantDecrypt(role);
+    role.addToPolicy(
+      new PolicyStatement({
+        actions: ["xray:PutTraceSegments"],
+        resources: ["*"],
+        conditions: { StringEquals: { "aws:RequestedRegion": this.region } },
+      }),
+    );
+    Validations.of(role).acknowledge({
+      id: "AwsSolutions::AwsSolutions-IAM5[Resource::*]",
+      reason:
+        "X-Ray PutTraceSegments has no resource-level ARN support. Restrict to this account's runtime role and the deployed Region; export only fixed-name operational spans.",
+    });
     const fn = new CfnWebFunction(this, "Function", {
       functionName: `chartvigil-${props.stage}-${props.tenant}-web`,
     });

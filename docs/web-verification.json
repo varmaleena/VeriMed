@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "verified_at": "2026-11-23T05:04:03.549019+00:00",
+  "web_trace_verified": false,
+  "url": "https://dgk7i2snnkp21.cloudfront.net",
+  "anonymous_clinical_redirect": true,
+  "anonymous_origin_status": 403,
+  "managed_login_page_status": 200,
+  "managed_password_forms": 2,
+  "managed_login_submit_status": 302,
+  "managed_login_returned_code": true,
+  "callback_result_status": 200,
+  "callback_result_path": "/worklist",
+  "real_code_pkce_sign_in": true,
+  "worklist_status": 200,
+  "secure_http_only_session": true,
+  "expired_fhir_ui_verified": true,
+  "altered_session_rejected": true,
+  "temporary_identity_removed": true
+}
