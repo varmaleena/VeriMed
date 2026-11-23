@@ -1,6 +1,11 @@
 name: Synthea dependency remediation
 on:
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the validated code artifact prerelease
+        type: boolean
+        default: false
   push:
     paths:
       - .github/workflows/synthea-security.yml
@@ -79,3 +84,29 @@ jobs:
             .build-synthea/source/build/libs/synthea.sha256
             .build-synthea/candidate-scan.json
           retention-days: 3
+  publish:
+    if: github.event_name == 'workflow_dispatch' && inputs.publish
+    needs: candidate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Publish only the passing code artifact and security report
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh run download "$GITHUB_RUN_ID" --name synthea-security-candidate --dir candidate
+          cd candidate
+          sha256sum --check synthea.sha256
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path('candidate-scan.json').read_text())
+          packages = [p for result in report.get('Results', []) if result.get('Type') == 'jar' for p in result.get('Packages', [])]
+          assert len(packages) >= 100
+          assert not [v for result in report.get('Results', []) for v in result.get('Vulnerabilities', []) if v['Severity'] in ('HIGH', 'CRITICAL')]
+          PY
+          gh release create synthea-4.0.0-security.1 --target "$GITHUB_SHA" --draft --prerelease --title 'Synthea 4.0.0 security dependency rebuild' --notes "Pinned upstream source 0185c09ea9d10a822c6f5f3ef9bdcbcbe960c813 and reviewed dependency compatibility patches. Inventoried Java scan and offline real FHIR generation passed in https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. No patient data is published." synthea-with-dependencies.jar synthea.sha256 candidate-scan.json
+          gh release edit synthea-4.0.0-security.1 --draft=false
